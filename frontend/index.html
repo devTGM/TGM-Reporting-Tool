@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TGM Reporting Studio - Cross-Channel Ad Reporting for Looker Studio</title>
+  <meta name="description" content="Automated cross-channel advertising data ingestion, cleaning, BigQuery warehousing, and Looker Studio reporting pipeline for marketing agencies.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <!-- Main Row: Brand & Controls -->
+      <div class="header-main-row">
+        <div class="brand">
+          <div class="brand-logo-container">
+            <img src="/static/img/tgm_emblem_pure.png" alt="Think Grow Media Logo" class="brand-logo-img">
+          </div>
+          <div class="brand-text">
+            <div class="brand-title-wrap">
+              <h1>Think Grow Media</h1>
+              <span class="brand-badge">REPORTING STUDIO</span>
+            </div>
+            <p>Cross-Channel Ad Pipeline &bull; BigQuery Data Warehouse</p>
+          </div>
+        </div>
+
+        <!-- Client Switcher & Sync Button -->
+        <div class="header-controls">
+          <div class="status-pill">
+            <span class="pulse-radar"></span>
+            <span>5 Networks Live</span>
+          </div>
+
+          <div class="client-select-wrap">
+            <div class="client-avatar-dot">AG</div>
+            <label for="global-client-select">Client:</label>
+            <select id="global-client-select" class="select-client">
+              <option value="">All Agency Clients</option>
+            </select>
+          </div>
+
+          <div class="client-select-wrap" style="padding: 0.25rem 0.6rem; min-width: auto; gap: 0.35rem;">
+            <span style="color: var(--accent-emerald); font-weight: 800; font-size: 0.88rem;">₹</span>
+            <label for="global-currency-select" style="font-size: 0.72rem; text-transform: uppercase;">Curr:</label>
+            <select id="global-currency-select" class="select-client" style="border: none; background: transparent; padding: 0.15rem 0; font-weight: 700; color: #fff; cursor: pointer;">
+              <option value="INR" selected>INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="AED">AED (د.إ)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" id="btn-open-sync-modal">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Sync Data Now
+          </button>
+
+          <!-- User Profile & Sign Out -->
+          <div id="user-profile-badge" class="client-select-wrap" style="padding: 0.25rem 0.65rem; min-width: auto; gap: 0.45rem; cursor: default;">
+            <div id="user-role-avatar" class="client-avatar-dot" style="background: linear-gradient(135deg, #da0d0a, #ff1a44); font-size: 0.7rem; font-weight: 800;">AD</div>
+            <div style="display: flex; flex-direction: column;">
+              <span id="user-display-name" style="font-size: 0.78rem; font-weight: 700; color: #fff; line-height: 1.1;">Admin</span>
+              <span id="user-role-badge" style="font-size: 0.65rem; color: var(--accent-gold); font-weight: 700; text-transform: uppercase;">Super Admin</span>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" id="btn-header-logout" onclick="handleLogout()" title="Sign out of TGM Reporting Studio" style="padding: 0.35rem 0.65rem; display: flex; align-items: center; gap: 0.35rem;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs Row -->
+      <div class="header-nav-row">
+        <nav class="nav-tabs" role="tablist">
+          <button class="nav-tab-btn active" data-tab="tab-dashboard" id="btn-tab-dashboard">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            Dashboard
+          </button>
+          <button class="nav-tab-btn" data-tab="tab-clients" id="btn-tab-clients">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Clients
+          </button>
+          <button class="nav-tab-btn" data-tab="tab-connectors" id="btn-tab-connectors">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Ad Connectors
+          </button>
+          <button class="nav-tab-btn" data-tab="tab-data" id="btn-tab-data">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            Data Lake
+          </button>
+          <button class="nav-tab-btn" data-tab="tab-bigquery" id="btn-tab-bigquery">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            BigQuery
+          </button>
+          <button class="nav-tab-btn" data-tab="tab-looker" id="btn-tab-looker">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            Looker Studio
+          </button>
+          <button class="nav-tab-btn" data-tab="tab-team" id="btn-tab-team" style="display: none;">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Team & Access
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Areas -->
+  <main class="main-content">
+
+    <!-- TAB 1: EXECUTIVE DASHBOARD -->
+    <section id="tab-dashboard" class="tab-pane active">
+      <div class="page-title-row">
+        <div>
+          <h2>Executive Marketing Dashboard</h2>
+          <p>Unified real-time advertising analytics across Meta, Google, LinkedIn, TikTok, and Snapchat</p>
+        </div>
+        <div class="actions-row">
+          <div class="timeframe-toggle">
+            <button class="btn-tf active" data-tf="day" id="tf-day">Day*</button>
+            <button class="btn-tf" data-tf="week" id="tf-week">Week</button>
+            <button class="btn-tf" data-tf="month" id="tf-month">Month</button>
+          </div>
+          <span class="card-badge" id="data-status-badge">Automated Cleaned Pipeline</span>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh-dashboard">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- LUXURY DATE RANGE & SCOPE FILTER PANEL -->
+      <div class="date-filter-panel card" style="margin-bottom: 1.5rem; padding: 1rem 1.25rem; border: 1px solid rgba(218, 13, 10, 0.25); background: linear-gradient(135deg, rgba(218, 13, 10, 0.05) 0%, rgba(14, 7, 32, 0.95) 100%);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          
+          <!-- Presets -->
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; display: flex; align-items: center; gap: 0.35rem; margin-right: 0.25rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tgm-flame-light)" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Date Scope:
+            </span>
+            <div class="preset-pills-wrap">
+              <button class="btn-preset-date" data-preset="today" id="preset-today">Today</button>
+              <button class="btn-preset-date" data-preset="yesterday" id="preset-yesterday">Yesterday</button>
+              <button class="btn-preset-date" data-preset="this_week" id="preset-this-week">This Week</button>
+              <button class="btn-preset-date" data-preset="this_month" id="preset-this-month">This Month</button>
+              <button class="btn-preset-date" data-preset="this_quarter" id="preset-this-quarter">This Quarter</button>
+              <button class="btn-preset-date" data-preset="last_30" id="preset-last-30">Last 30 Days</button>
+              <button class="btn-preset-date active" data-preset="all" id="preset-all">All Time (Max)</button>
+            </div>
+          </div>
+
+          <!-- Custom Pickers & Active Badge -->
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.45rem; background: rgba(0, 0, 0, 0.35); padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Custom:</span>
+              <input type="date" id="filter-start-date" class="form-input date-picker-input" style="padding: 3px 8px; height: 30px; font-size: 0.78rem; width: 135px;">
+              <span style="color: var(--text-muted); font-size: 0.75rem;">&rarr;</span>
+              <input type="date" id="filter-end-date" class="form-input date-picker-input" style="padding: 3px 8px; height: 30px; font-size: 0.78rem; width: 135px;">
+              <button class="btn btn-primary btn-sm" id="btn-apply-dates" style="height: 30px; padding: 0 12px; font-size: 0.75rem;">Apply</button>
+              <button class="btn btn-outline btn-sm" id="btn-reset-dates" style="height: 30px; padding: 0 10px; font-size: 0.75rem;" title="Reset to All Time">Reset</button>
+            </div>
+
+            <div id="active-date-badge" class="active-date-badge">
+              <span class="badge-dot active"></span> Showing: <strong>All Time (Lifetime)</strong>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- KPI Scorecards Grid: Exact Spreadsheet Specification -->
+      <!-- Tier 1: Delivery, Purchases & Revenue Core -->
+      <div class="kpi-grid">
+        <!-- Total Impressions -->
+        <div class="kpi-card" style="--card-accent: #38bdf8;">
+          <div class="kpi-header">
+            <span class="kpi-label">Total Impressions</span>
+            <div class="kpi-icon-wrap" style="color: #38bdf8;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-total-impressions">0</div>
+          <div class="kpi-sub">
+            <span>Total Ad Delivery</span>
+            <span class="kpi-badge-chip" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">Impressions</span>
+          </div>
+        </div>
+
+        <!-- Total Reach -->
+        <div class="kpi-card" style="--card-accent: #818cf8;">
+          <div class="kpi-header">
+            <span class="kpi-label">Total Reach</span>
+            <div class="kpi-icon-wrap" style="color: #818cf8;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-total-reach">0</div>
+          <div class="kpi-sub" id="kpi-reach-sub">
+            <span>Unique Reached</span>
+            <span class="kpi-badge-chip" id="kpi-frequency-chip" style="background: rgba(129, 140, 248, 0.15); color: #818cf8; border-color: rgba(129, 140, 248, 0.3);">Freq: 1.00</span>
+          </div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: var(--tgm-crimson);">
+          <div class="kpi-header">
+            <span class="kpi-label">Amount Spent</span>
+            <div class="kpi-icon-wrap" style="color: var(--tgm-flame-light);">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-total-spend">₹0.00</div>
+          <div class="kpi-sub">
+            <span>Total Ad Investment</span>
+            <span class="kpi-badge-chip">Paid Media</span>
+          </div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: var(--accent-emerald);">
+          <div class="kpi-header">
+            <span class="kpi-label">Purchases Value</span>
+            <div class="kpi-icon-wrap" style="color: var(--accent-emerald-light);">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-total-revenue" style="color: #34d399;">₹0.00</div>
+          <div class="kpi-sub positive" id="kpi-revenue-sub">
+            <span>Attributed Revenue</span>
+            <span class="kpi-badge-chip" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">Conversion</span>
+          </div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: var(--accent-gold);">
+          <div class="kpi-header">
+            <span class="kpi-label">Purchase ROAS</span>
+            <div class="kpi-icon-wrap" style="color: var(--accent-gold-light);">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-blended-roas" style="color: #ffcd57;">0.00x</div>
+          <div class="kpi-sub">
+            <span>Value &divide; Amount Spent</span>
+            <span class="kpi-badge-chip" style="background: rgba(255, 205, 87, 0.15); color: #ffcd57; border-color: rgba(255, 205, 87, 0.35);">Target 3.0x+</span>
+          </div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: var(--accent-violet);">
+          <div class="kpi-header">
+            <span class="kpi-label">Cost per Purchase</span>
+            <div class="kpi-icon-wrap" style="color: var(--accent-violet-light);">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-cost-per-purchase">₹0.00</div>
+          <div class="kpi-sub" id="kpi-purchases-count">
+            <span>CPA Efficiency</span>
+            <span class="kpi-badge-chip">Purchases</span>
+          </div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: #38bdf8;">
+          <div class="kpi-header">
+            <span class="kpi-label">Avg Purchase Value</span>
+            <div class="kpi-icon-wrap" style="color: #38bdf8;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-avg-purchase-value">₹0.00</div>
+          <div class="kpi-sub">
+            <span>AOV Basket Size</span>
+            <span class="kpi-badge-chip">Value / Order</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tier 2: Funnel & Conversion Rates (LPV, ATC, IC, Video) -->
+      <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 1.75rem;">
+        <div class="kpi-card" style="--card-accent: #38bdf8;">
+          <div class="kpi-header">
+            <span class="kpi-label">Landing Page Views</span>
+            <div class="kpi-icon-wrap" style="color: #38bdf8;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-total-lpv" style="font-size: 1.55rem;">0</div>
+          <div class="kpi-sub" id="kpi-lpv-rate">LPV Rate: 0%</div>
+          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 77%;"></div></div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: #38bdf8;">
+          <div class="kpi-header">
+            <span class="kpi-label">Cost per LPV</span>
+            <div class="kpi-icon-wrap" style="color: #38bdf8; font-weight: 800;">₹</div>
+          </div>
+          <div class="kpi-value" id="kpi-cost-per-lpv" style="font-size: 1.55rem;">₹0.00</div>
+          <div class="kpi-sub">Spend &divide; LPV</div>
+          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 45%; background: #38bdf8;"></div></div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: #a855f7;">
+          <div class="kpi-header">
+            <span class="kpi-label">Purchase Rate / LPV</span>
+            <div class="kpi-icon-wrap" style="color: #c084fc;">%</div>
+          </div>
+          <div class="kpi-value" id="kpi-purchase-rate-lpv" style="font-size: 1.55rem;">0.00%</div>
+          <div class="kpi-sub">(Purchases &divide; LPV) &times; 100</div>
+          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 35%; background: #a855f7;"></div></div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: #f59e0b;">
+          <div class="kpi-header">
+            <span class="kpi-label">Add to Cart %</span>
+            <div class="kpi-icon-wrap" style="color: #fbbf24;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-atc-pct" style="font-size: 1.55rem;">0.00%</div>
+          <div class="kpi-sub" id="kpi-cost-per-atc">Cost/ATC: ₹0.00</div>
+          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 50%; background: #f59e0b;"></div></div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: #ec4899;">
+          <div class="kpi-header">
+            <span class="kpi-label">Checkout Initiated %</span>
+            <div class="kpi-icon-wrap" style="color: #f472b6;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-checkout-pct" style="font-size: 1.55rem;">0.00%</div>
+          <div class="kpi-sub" id="kpi-cost-per-checkout">Cost/IC: ₹0.00</div>
+          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 25%; background: #ec4899;"></div></div>
+        </div>
+
+        <div class="kpi-card" style="--card-accent: #10b981;">
+          <div class="kpi-header">
+            <span class="kpi-label">3s Video Play Rate</span>
+            <div class="kpi-icon-wrap" style="color: #34d399;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpi-video-3s-rate" style="font-size: 1.55rem;">0.00%</div>
+          <div class="kpi-sub" id="kpi-cost-per-3s">Thumbstop &bull; Cost: ₹0.00</div>
+          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 60%; background: #10b981;"></div></div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="var(--accent-indigo)" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Daily Spend vs Revenue Trend
+            </div>
+            <span class="card-badge">Daily Performance</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-daily-trend"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="var(--accent-cyan)" stroke-width="2" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+              Spend Share by Platform
+            </div>
+            <span class="card-badge">Network Share</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-platform-share"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform Performance Matrix Table -->
+      <div class="table-card">
+        <div class="card-header" style="padding: 1.25rem 1.25rem 0.5rem 1.25rem;">
+          <div class="card-title">
+            <svg width="18" height="18" fill="none" stroke="var(--accent-emerald)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            Cross-Channel Performance Matrix
+          </div>
+          <span class="card-badge">Multi-Platform Breakdown</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="platform-matrix-table">
+            <thead>
+              <tr>
+                <th>Ad Platform</th>
+                <th>Ad Spend</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>CTR</th>
+                <th>Avg CPC</th>
+                <th>Conversions</th>
+                <th>Revenue</th>
+                <th>ROAS</th>
+                <th>CPA</th>
+              </tr>
+            </thead>
+            <tbody id="platform-matrix-body">
+              <tr><td colspan="10" style="text-align: center; padding: 2rem;">Loading platform matrix...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Weekly Nomenclature Performance Section (Requirement Rows 19-27) -->
+      <div class="table-card" style="margin-top: 1.5rem;">
+        <div class="card-header" style="padding: 1.25rem 1.25rem 0.5rem 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="var(--tgm-crimson)" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              Weekly Performance on Basis of Nomenclature
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+              Cross-channel creative, audience, and campaign taxonomy aggregation
+            </p>
+          </div>
+          <span class="card-badge" style="background: rgba(218, 13, 10, 0.15); color: var(--tgm-flame-light); border: 1px solid rgba(218, 13, 10, 0.35);">Weekly Grouping</span>
+        </div>
+
+        <!-- Nomenclature Dimension Selector Pills -->
+        <div class="nomen-pills-bar">
+          <button class="btn btn-nomen active" data-dim="category">
+            <span>🏷️</span> CATEGORY/COLLECTION
+          </button>
+          <button class="btn btn-nomen" data-dim="product">
+            <span>👕</span> PRODUCTNAME
+          </button>
+          <button class="btn btn-nomen" data-dim="funnel">
+            <span>🔻</span> FUNNEL
+          </button>
+          <button class="btn btn-nomen" data-dim="offer">
+            <span>🎁</span> (SALENAME+OFFER)
+          </button>
+          <button class="btn btn-nomen" data-dim="audience">
+            <span>👥</span> AUDIENCETYPE
+          </button>
+          <button class="btn btn-nomen" data-dim="hook">
+            <span>🎣</span> CONCEPT/ANGLE-HOOK
+          </button>
+          <button class="btn btn-nomen" data-dim="format">
+            <span>🎬</span> FORMAT
+          </button>
+          <button class="btn btn-nomen" data-dim="landing_page">
+            <span>🌐</span> LANDINGPAGE
+          </button>
+        </div>
+
+        <!-- Table Quick Search & Actions -->
+        <div class="table-search-row">
+          <div class="search-input-wrap">
+            <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="nomen-search-input" placeholder="Filter nomenclature records (e.g. Polo, Black Friday, Review)...">
+          </div>
+          <div style="font-size: 0.76rem; color: var(--text-muted); font-weight: 500;">
+            Showing weekly aggregated taxonomy metrics
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="nomen-table">
+            <thead>
+              <tr>
+                <th>Week</th>
+                <th>Classification</th>
+                <th>Amount Spent</th>
+                <th>Purchases Value</th>
+                <th>Purchases</th>
+                <th>Purchase ROAS</th>
+                <th>Cost/Purchase</th>
+                <th>Avg Value (AOV)</th>
+                <th>Landing Page Views</th>
+                <th>Purchases/LPV</th>
+                <th>ATC %</th>
+                <th>Checkout %</th>
+              </tr>
+            </thead>
+            <tbody id="nomen-table-body">
+              <tr><td colspan="12" style="text-align: center; padding: 2rem;">Loading nomenclature analysis...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: AGENCY CLIENTS -->
+    <section id="tab-clients" class="tab-pane">
+      <div class="page-title-row">
+        <div>
+          <h2>Agency Client Portfolio</h2>
+          <p>Manage agency clients, currencies, and connected advertising accounts</p>
+        </div>
+        <button class="btn btn-primary" id="btn-add-client-modal">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add New Client
+        </button>
+      </div>
+
+      <div class="kpi-grid" id="clients-card-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 3: PLATFORM CONNECTORS -->
+    <section id="tab-connectors" class="tab-pane">
+      <div class="page-title-row">
+        <div>
+          <h2>Advertising Platform Connectors</h2>
+          <p>Configure direct API credentials for Meta, Google Ads, LinkedIn, TikTok, and Snapchat</p>
+        </div>
+        <div class="actions-row">
+          <span class="card-badge">Direct Graph & REST APIs</span>
+        </div>
+      <!-- OPTION 1: GOOGLE SHEETS AUTO-SYNC HUB -->
+      <div class="card" style="margin-bottom: 2rem; border: 1px solid rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 6, 32, 0.95) 100%);">
+        <div class="card-header" style="border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+          <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; color: #10B981; font-weight: 800; font-size: 1.25rem;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Option 1: Google Sheets Automated Hub</h3>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px;">RECOMMENDED FOR AGENCIES</span>
+              </div>
+              <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">
+                Auto-syncs raw ad rows from Coupler.io / Coefficient / Supermetrics into your sheet, then cleans & computes 17 metrics directly.
+              </p>
+            </div>
+          </div>
+          <a href="https://docs.google.com/spreadsheets/d/1yulDW_Xm-pmawzXSqBtRmg1WojiP74FpuyN1T6sp-yQ/edit?usp=sharing" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+            Open Requirement Sheet &rarr;
+          </a>
+        </div>
+        <div style="padding: 1.25rem;">
+          <div style="display: grid; grid-template-columns: 1.2fr 2fr 0.8fr auto; gap: 1rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--accent-emerald-light); font-weight: 700;">1. Select Agency Client</label>
+              <select class="form-select" id="sheets-sync-client" onchange="onSheetsSyncClientChanged()">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">2. Client Dedicated Sheet URL or ID</label>
+              <input type="text" class="form-input" id="sheets-sync-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">3. Tab GID</label>
+              <input type="text" class="form-input" id="sheets-sync-gid" placeholder="0" value="0">
+            </div>
+            <div>
+              <button class="btn btn-primary" id="btn-sync-google-sheet" onclick="triggerGoogleSheetSync()" style="background: linear-gradient(135deg, #10B981, #059669); border-color: #10B981; height: 38px; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                Sync Sheet for Client
+              </button>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-dim); flex-wrap: wrap; gap: 0.5rem;">
+            <div id="sheets-sync-client-status" style="display: flex; align-items: center; gap: 0.5rem;">
+              <span>Select a client above to load and manage their dedicated Google Sheet.</span>
+            </div>
+            <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-muted);">
+              <input type="checkbox" id="sheets-sync-replace" checked>
+              <span>Replace previous sheet records for this client (Prevents overlapping)</span>
+            </label>
+          </div>
+          <div id="sheets-sync-result-card" style="display: none; margin-top: 1rem; padding: 0.85rem 1rem; border-radius: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.85rem; color: #e2e8f0;">
+          </div>
+        </div>
+      </div>
+
+      <div class="connectors-grid">
+        <!-- META ADS -->
+        <div class="connector-card">
+          <div>
+            <div class="connector-card-top">
+              <div class="connector-brand">
+                <div class="connector-brand-icon" style="background: rgba(24, 119, 242, 0.2); color: #1877f2;">M</div>
+                <div>
+                  <div class="connector-brand-title">Meta Ads</div>
+                  <div class="connector-brand-desc">Facebook & Instagram Insights API</div>
+                </div>
+              </div>
+              <span class="status-dot active" title="Connector Ready"></span>
+            </div>
+            <div class="form-group">
+              <label>Ad Account ID (act_XXXXXXXXX)</label>
+              <input type="text" class="form-input" id="meta-account-id" placeholder="act_1234567890">
+            </div>
+            <div class="form-group">
+              <label>System / User Access Token</label>
+              <input type="password" class="form-input" id="meta-access-token" placeholder="EAA...">
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('meta')">
+              Test Meta Connection
+            </button>
+          </div>
+        </div>
+
+        <!-- GOOGLE ADS -->
+        <div class="connector-card">
+          <div>
+            <div class="connector-card-top">
+              <div class="connector-brand">
+                <div class="connector-brand-icon" style="background: rgba(66, 133, 244, 0.2); color: #4285f4;">G</div>
+                <div>
+                  <div class="connector-brand-title">Google Ads</div>
+                  <div class="connector-brand-desc">Search, Performance Max, YouTube</div>
+                </div>
+              </div>
+              <span class="status-dot active" title="Connector Ready"></span>
+            </div>
+            <div class="form-group">
+              <label>Customer ID (XXX-XXX-XXXX)</label>
+              <input type="text" class="form-input" id="google-customer-id" placeholder="123-456-7890">
+            </div>
+            <div class="form-group">
+              <label>Developer Token</label>
+              <input type="password" class="form-input" id="google-dev-token" placeholder="Dev Token">
+            </div>
+            <div class="form-group">
+              <label>OAuth Refresh Token</label>
+              <input type="password" class="form-input" id="google-refresh-token" placeholder="1//04...">
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('google')">
+              Test Google Connection
+            </button>
+          </div>
+        </div>
+
+        <!-- LINKEDIN ADS -->
+        <div class="connector-card">
+          <div>
+            <div class="connector-card-top">
+              <div class="connector-brand">
+                <div class="connector-brand-icon" style="background: rgba(10, 102, 194, 0.2); color: #0a66c2;">in</div>
+                <div>
+                  <div class="connector-brand-title">LinkedIn Marketing</div>
+                  <div class="connector-brand-desc">Sponsored Content & B2B Lead Gen</div>
+                </div>
+              </div>
+              <span class="status-dot active" title="Connector Ready"></span>
+            </div>
+            <div class="form-group">
+              <label>Sponsored Account ID (or URN)</label>
+              <input type="text" class="form-input" id="linkedin-account-id" placeholder="508934211">
+            </div>
+            <div class="form-group">
+              <label>OAuth 2.0 Bearer Token</label>
+              <input type="password" class="form-input" id="linkedin-access-token" placeholder="AQV...">
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('linkedin')">
+              Test LinkedIn Connection
+            </button>
+          </div>
+        </div>
+
+        <!-- TIKTOK ADS -->
+        <div class="connector-card">
+          <div>
+            <div class="connector-card-top">
+              <div class="connector-brand">
+                <div class="connector-brand-icon" style="background: rgba(254, 44, 85, 0.2); color: #fe2c55;">&#9835;</div>
+                <div>
+                  <div class="connector-brand-title">TikTok Ads</div>
+                  <div class="connector-brand-desc">TikTok Business Marketing API</div>
+                </div>
+              </div>
+              <span class="status-dot active" title="Connector Ready"></span>
+            </div>
+            <div class="form-group">
+              <label>Advertiser ID</label>
+              <input type="text" class="form-input" id="tiktok-advertiser-id" placeholder="7091234567890">
+            </div>
+            <div class="form-group">
+              <label>Business Access Token</label>
+              <input type="password" class="form-input" id="tiktok-access-token" placeholder="act.XXXXXXXX">
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('tiktok')">
+              Test TikTok Connection
+            </button>
+          </div>
+        </div>
+
+        <!-- SNAPCHAT ADS -->
+        <div class="connector-card">
+          <div>
+            <div class="connector-card-top">
+              <div class="connector-brand">
+                <div class="connector-brand-icon" style="background: rgba(255, 252, 0, 0.2); color: #facc15;">&#128123;</div>
+                <div>
+                  <div class="connector-brand-title">Snapchat Ads</div>
+                  <div class="connector-brand-desc">Snap Ads & AR Lens API</div>
+                </div>
+              </div>
+              <span class="status-dot active" title="Connector Ready"></span>
+            </div>
+            <div class="form-group">
+              <label>Ad Account ID</label>
+              <input type="text" class="form-input" id="snapchat-account-id" placeholder="d8c3b...-...">
+            </div>
+            <div class="form-group">
+              <label>OAuth 2.0 Access Token</label>
+              <input type="password" class="form-input" id="snapchat-access-token" placeholder="snap_token_...">
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('snapchat')">
+              Test Snapchat Connection
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: DATA LAKE & CLEANING STAGING -->
+    <section id="tab-data" class="tab-pane">
+      <div class="page-title-row">
+        <div>
+          <h2>Automated Data Cleaning & Staging Lake</h2>
+          <p>Inspect standardized cross-channel records, cleaning rules, and sync logs</p>
+        </div>
+        <div class="actions-row">
+          <button class="btn btn-outline btn-sm" id="btn-clear-demo" onclick="handleClearDemoData()" style="border-color: rgba(218, 13, 10, 0.4); color: #ff4d6d;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Clear Demo Data (Keep Only Sheet Data)
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-csv">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Cleaned CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Pipeline Stages Visualizer -->
+      <div class="pipeline-flow">
+        <div class="pipeline-step">
+          <div class="step-icon">1</div>
+          <div class="step-title">Ingestion</div>
+          <div class="step-desc">5 Ad APIs Pull</div>
+        </div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-step">
+          <div class="step-icon">2</div>
+          <div class="step-title">Standardization</div>
+          <div class="step-desc">Schema Conformance</div>
+        </div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-step">
+          <div class="step-icon">3</div>
+          <div class="step-title">Cleaning</div>
+          <div class="step-desc">Zero-Division & Casing</div>
+        </div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-step">
+          <div class="step-icon">4</div>
+          <div class="step-title">Deduplication</div>
+          <div class="step-desc">MD5 Record Hashing</div>
+        </div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-step">
+          <div class="step-icon">5</div>
+          <div class="step-title">BigQuery</div>
+          <div class="step-desc">Partitioned Warehouse</div>
+        </div>
+        <div class="pipeline-arrow">&rarr;</div>
+        <div class="pipeline-step">
+          <div class="step-icon" style="background: rgba(16, 185, 129, 0.2); border-color: var(--accent-emerald); color: var(--accent-emerald);">&#x2714;</div>
+          <div class="step-title">Looker Studio</div>
+          <div class="step-desc">Executive Visuals</div>
+        </div>
+      </div>
+
+      <!-- Filterable Cleaned Records Table -->
+      <div class="table-card">
+        <div class="card-header" style="padding: 1rem 1.25rem;">
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; width: 100%; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <select id="filter-platform" class="form-select" style="width: 140px;">
+                <option value="">All Platforms</option>
+                <option value="meta">Meta</option>
+                <option value="google">Google</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="tiktok">TikTok</option>
+                <option value="snapchat">Snapchat</option>
+              </select>
+              <input type="text" id="filter-search" class="form-input" placeholder="Search campaign or ad name..." style="width: 240px;">
+            </div>
+            <div id="records-count-info" style="font-size: 0.8rem; color: var(--text-muted);">
+              Showing records
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="cleaned-records-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Platform</th>
+                <th>Campaign Name</th>
+                <th>Spend</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>CTR</th>
+                <th>CPC</th>
+                <th>ROAS</th>
+                <th>Revenue</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="cleaned-records-body">
+              <tr><td colspan="12" style="text-align: center; padding: 2rem;">Loading cleaned records...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: BIGQUERY WAREHOUSE -->
+    <section id="tab-bigquery" class="tab-pane">
+      <div class="page-title-row">
+        <div>
+          <h2>Google BigQuery Warehouse Settings</h2>
+          <p>Configure BigQuery storage dataset, partitioned schema, and automated views</p>
+        </div>
+        <div class="actions-row">
+          <button class="btn btn-secondary btn-sm" id="btn-test-bq">
+            Test BigQuery Connection
+          </button>
+          <button class="btn btn-primary btn-sm" id="btn-deploy-bq">
+            Deploy Tables & Views
+          </button>
+        </div>
+      </div>
+
+      <div class="charts-grid" style="grid-template-columns: 1fr 1fr;">
+        <!-- Config Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Warehouse Credentials & Schema</div>
+            <span class="card-badge" id="bq-status-badge">Unconfigured</span>
+          </div>
+          <div class="form-group">
+            <label>GCP Project ID</label>
+            <input type="text" class="form-input" id="bq-project-id" placeholder="my-marketing-agency-prod">
+          </div>
+          <div class="form-group">
+            <label>Dataset ID</label>
+            <input type="text" class="form-input" id="bq-dataset-id" value="tgm_reporting">
+          </div>
+          <div class="form-group">
+            <label>Partitioned Table Name</label>
+            <input type="text" class="form-input" id="bq-table-name" value="unified_ad_performance">
+          </div>
+          <div class="form-group">
+            <label>GCP Location</label>
+            <input type="text" class="form-input" id="bq-location" value="US">
+          </div>
+          <div class="form-group">
+            <label>Service Account Key JSON (or Path to key.json)</label>
+            <textarea class="form-textarea" id="bq-sa-json" placeholder='{"type": "service_account", "project_id": "...", ...}'></textarea>
+          </div>
+          <div class="switch-wrap">
+            <span class="switch-label">Auto-Push to BigQuery on every sync</span>
+            <input type="checkbox" id="bq-auto-push">
+          </div>
+          <button class="btn btn-success" style="width: 100%; margin-top: 1rem;" id="btn-save-bq-config">
+            Save BigQuery Settings
+          </button>
+        </div>
+
+        <!-- Architecture & Schema Details Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Partitioning & View Architecture</div>
+            <span class="card-badge">Optimized for Looker Studio</span>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            BigQuery tables are created with native <strong>DAY partitioning</strong> on <code>date</code> and <strong>clustering</strong> on <code>platform, client_id, campaign_name</code> for ultra-low query latency and minimal Looker Studio scan costs.
+          </div>
+          
+          <div style="margin-bottom: 0.75rem;">
+            <strong style="color: var(--text-primary); font-size: 0.82rem;">Automated Looker Views Created:</strong>
+            <ul style="margin: 0.5rem 0 0.5rem 1.25rem; font-size: 0.8rem; color: var(--text-secondary);">
+              <li><code>v_looker_studio_daily_overview</code>: Flat daily cross-channel view with all 11 raw metrics, 8 nomenclature dimensions, and 17 safe-calculated ratios.</li>
+              <li><code>v_looker_studio_weekly_nomenclature</code>: Weekly rollup by the 8 taxonomy dimensions (Category, Product, Funnel, Sale/Offer, Audience, Hook, Format, Landing Page).</li>
+              <li><code>v_looker_studio_creative_performance</code>: Creative/video performance table with 3s video play rates (Thumbstop), 15s ThruPlays, and cost efficiencies.</li>
+            </ul>
+          </div>
+
+          <div style="margin-top: 1rem;">
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Generated BigQuery DDL Preview:</label>
+            <div class="code-box" id="bq-ddl-preview" style="height: 180px;">
+CREATE TABLE IF NOT EXISTS `PROJECT.tgm_reporting.unified_ad_performance` (
+  record_id STRING NOT NULL,
+  date DATE NOT NULL,
+  client_id STRING NOT NULL,
+  platform STRING NOT NULL, -- Meta, Google, LinkedIn, TikTok, Snapchat
+  campaign_name STRING, adset_name STRING, ad_name STRING,
+  -- 8 Nomenclature Dimensions
+  category_collection STRING, product_name STRING, funnel STRING,
+  sale_offer STRING, audience_type STRING, concept_angle_hook STRING,
+  format STRING, landing_page STRING,
+  -- 11 Input Raw Metrics
+  spend FLOAT64, purchases_conversion_value FLOAT64, purchases FLOAT64,
+  landing_page_views INT64, reach INT64, impressions INT64, link_clicks INT64,
+  video_plays_3s INT64, thruplays_15s INT64, adds_to_cart INT64, checkouts_initiated INT64,
+  -- 17 Formulated Metrics
+  purchase_roas FLOAT64, cost_per_purchase FLOAT64, avg_purchase_conversion_value FLOAT64,
+  purchase_rate_per_lpv FLOAT64, cost_per_lpv FLOAT64, lpv_rate_per_link_clicks FLOAT64,
+  frequency FLOAT64, cpm FLOAT64, cpc FLOAT64, ctr FLOAT64,
+  video_plays_3s_rate_per_impressions FLOAT64, cost_per_video_play_3s FLOAT64,
+  cost_per_thruplay_15s FLOAT64, cost_per_add_to_cart FLOAT64, add_to_cart_pct FLOAT64,
+  cost_per_checkout_initiated FLOAT64, checkout_initiated_pct FLOAT64
+)
+PARTITION BY date
+CLUSTER BY platform, client_id, campaign_name;
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: LOOKER STUDIO HUB -->
+    <section id="tab-looker" class="tab-pane">
+      <div class="page-title-row">
+        <div>
+          <h2>Looker Studio Reporting Hub</h2>
+          <p>Connect BigQuery directly to Looker Studio and embed interactive dashboards</p>
+        </div>
+        <div class="actions-row">
+          <a href="https://lookerstudio.google.com/datasources/create?connectorId=bigQuery" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+            Open Looker Studio BigQuery Connector &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- 3 Step Walkthrough -->
+      <div class="looker-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">1. Connect BigQuery in Looker Studio</div>
+          </div>
+          <ol style="margin-left: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.8;">
+            <li>Go to <a href="https://lookerstudio.google.com" target="_blank" style="color: var(--accent-indigo);">Looker Studio</a> and click <strong>Create &rarr; Data Source</strong>.</li>
+            <li>Select the official <strong>BigQuery</strong> connector by Google.</li>
+            <li>Choose <strong>My Projects</strong> &rarr; Select your GCP Project &rarr; Dataset: <code>tgm_reporting</code>.</li>
+            <li>Select the Table <code>unified_ad_performance</code> or View <code>v_looker_studio_daily_overview</code>.</li>
+            <li>Click <strong>Connect</strong> in the top-right corner.</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">2. Looker Studio Calculated Fields</div>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            Add these calculated fields in Looker Studio so aggregated metrics recalculate accurately at any date range or filter:
+          </p>
+          <div class="code-box" style="margin-bottom: 0.5rem; max-height: 140px; overflow-y: auto;">
+<strong>Purchase ROAS:</strong>
+SUM(purchases_conversion_value) / NULLIF(SUM(spend), 0)
+
+<strong>Cost per Purchase (CPA):</strong>
+SUM(spend) / NULLIF(SUM(purchases), 0)
+
+<strong>Purchase Rate per LPV (%):</strong>
+(SUM(purchases) / NULLIF(SUM(landing_page_views), 0)) * 100
+
+<strong>Thumbstop Rate (%):</strong>
+(SUM(video_plays_3s) / NULLIF(SUM(impressions), 0)) * 100
+
+<strong>Add to Cart %:</strong>
+(SUM(adds_to_cart) / NULLIF(SUM(landing_page_views), 0)) * 100
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Looker Studio Report Embedder -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Looker Studio Embedded Dashboard</div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="looker-embed-input" class="form-input" placeholder="Paste Looker Studio Embed URL (https://lookerstudio.google.com/embed/reporting/...)" style="width: 380px;">
+            <button class="btn btn-secondary btn-sm" id="btn-save-embed-url">Save & Load</button>
+          </div>
+        </div>
+        <div id="looker-frame-container">
+          <iframe id="looker-embed-iframe" class="looker-embed-frame" src="about:blank" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: TEAM & PERMISSIONS MANAGEMENT (ADMIN ONLY) -->
+    <section id="tab-team" class="tab-pane">
+      <div class="page-title-row">
+        <div>
+          <h2>Internal Team & Client Access Control</h2>
+          <p>Assign granular client portfolio access to agency employees, account managers, and media buyers</p>
+        </div>
+        <div class="actions-row">
+          <button class="btn btn-primary" id="btn-open-add-user-modal">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Team Member
+          </button>
+        </div>
+      </div>
+
+      <!-- Access Summary Metrics -->
+      <div class="kpi-grid" style="margin-bottom: 2rem;">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">TOTAL INTERNAL USERS</span>
+            <div class="kpi-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo-light);">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="team-stat-total">0</div>
+          <div class="kpi-subtitle">Agency personnel with studio login</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">SUPER ADMINISTRATORS</span>
+            <div class="kpi-icon" style="background: rgba(218, 13, 10, 0.15); color: var(--accent-red-light);">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value highlight-value" id="team-stat-admins">0</div>
+          <div class="kpi-subtitle">Full unrestricted access to all clients</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">RESTRICTED TEAM MEMBERS</span>
+            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald-light);">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="team-stat-members">0</div>
+          <div class="kpi-subtitle">Media buyers limited to assigned clients</div>
+        </div>
+      </div>
+
+      <!-- Team Members Table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3>Agency Personnel & Client Assignments</h3>
+            <p>Non-admin members only see data for accounts explicitly granted</p>
+          </div>
+          <span class="card-badge">Role-Based Access Active</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Member Name & Contact</th>
+                <th>Role</th>
+                <th>Assigned Client Access</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="team-users-tbody">
+              <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading team roster...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: TRIGGER SYNC -->
+  <div class="modal-overlay" id="modal-sync">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Trigger Multi-Platform Sync</h3>
+        <button class="modal-close" onclick="closeModal('modal-sync')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Select Date Range</label>
+          <div style="display: flex; gap: 0.75rem;">
+            <input type="date" class="form-input" id="sync-start-date">
+            <input type="date" class="form-input" id="sync-end-date">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Platforms to Ingest</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.35rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer;">
+              <input type="checkbox" class="sync-platform-cb" value="meta" checked> Meta Ads (FB & IG)
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer;">
+              <input type="checkbox" class="sync-platform-cb" value="google" checked> Google Ads
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer;">
+              <input type="checkbox" class="sync-platform-cb" value="linkedin" checked> LinkedIn Ads
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer;">
+              <input type="checkbox" class="sync-platform-cb" value="tiktok" checked> TikTok Ads
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer;">
+              <input type="checkbox" class="sync-platform-cb" value="snapchat" checked> Snapchat Ads
+            </label>
+          </div>
+        </div>
+
+        <div class="switch-wrap">
+          <div>
+            <span class="switch-label">Sandbox Mock Mode</span>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Generates high-fidelity realistic data if API keys are unconfigured</div>
+          </div>
+          <input type="checkbox" id="sync-use-mock" checked>
+        </div>
+
+        <div class="switch-wrap">
+          <div>
+            <span class="switch-label">Push Cleaned Data to BigQuery</span>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Streams rows into BigQuery warehouse table</div>
+          </div>
+          <input type="checkbox" id="sync-push-bq">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-sync')">Cancel</button>
+        <button class="btn btn-primary" id="btn-start-sync">
+          Start Pipeline Execution
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD CLIENT -->
+  <div class="modal-overlay" id="modal-client">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Agency Client</h3>
+        <button class="modal-close" onclick="closeModal('modal-client')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Client Business Name</label>
+          <input type="text" class="form-input" id="new-client-name" placeholder="e.g. Acme Brands International">
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          <input type="url" class="form-input" id="new-client-website" placeholder="https://acme.example.com">
+        </div>
+        <div class="form-group">
+          <label>Industry</label>
+          <select class="form-select" id="new-client-industry">
+            <option value="eCommerce & Retail">eCommerce & Retail</option>
+            <option value="B2B SaaS & Tech">B2B SaaS & Tech</option>
+            <option value="Health & Wellness">Health & Wellness</option>
+            <option value="Finance & Fintech">Finance & Fintech</option>
+            <option value="Automotive & Mobility">Automotive & Mobility</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Reporting Currency</label>
+          <select class="form-select" id="new-client-currency">
+            <option value="INR" selected>INR (₹)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="AED">AED (د.إ)</option>
+            <option value="CAD">CAD ($)</option>
+            <option value="AUD">AUD ($)</option>
+          </select>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-light); margin-bottom: 0.5rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Dedicated Google Sheet (Optional / Can Configure Later)
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label style="font-size: 0.72rem;">Google Sheet URL or Spreadsheet ID</label>
+            <input type="text" class="form-input" id="new-client-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.72rem;">Worksheet Tab GID (defaults to 0)</label>
+            <input type="text" class="form-input" id="new-client-sheet-gid" placeholder="0" value="0">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-client')">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-new-client">Save Client</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIGURE CLIENT GOOGLE SHEET & PROFILE -->
+  <div class="modal-overlay" id="modal-client-sheet">
+    <div class="modal-card" style="max-width: 560px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.3rem;">📊</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem;" id="edit-client-modal-title">Configure Client Google Sheet</h3>
+            <span id="edit-client-modal-subtitle" style="font-size: 0.75rem; color: var(--accent-emerald-light);">Dedicated Telemetry Source</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modal-client-sheet')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-client-id">
+        <div class="form-group">
+          <label>Client Name</label>
+          <input type="text" class="form-input" id="edit-client-name" placeholder="Client Name">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label>Website</label>
+            <input type="url" class="form-input" id="edit-client-website" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>Currency</label>
+            <select class="form-select" id="edit-client-currency">
+              <option value="INR">INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="AED">AED (د.إ)</option>
+              <option value="CAD">CAD ($)</option>
+              <option value="AUD">AUD ($)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-light); display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Client Dedicated Google Sheet
+            </div>
+            <a id="edit-client-sheet-link" href="#" target="_blank" style="display: none; font-size: 0.72rem; color: var(--accent-cyan); text-decoration: none;">
+              Open in Sheets &rarr;
+            </a>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.75rem 0;">
+            Every client has their own isolated Google Sheet. Syncing will strictly affect this client only and will never mix or overlap with other accounts.
+          </p>
+          <div class="form-group" style="margin-bottom: 0.65rem;">
+            <label style="font-size: 0.72rem;">Google Sheet URL or Spreadsheet ID</label>
+            <input type="text" class="form-input" id="edit-client-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.72rem;">Worksheet Tab GID (e.g. 0 or 886192859)</label>
+            <input type="text" class="form-input" id="edit-client-sheet-gid" placeholder="0" value="0">
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+          <span style="font-size: 0.74rem; color: var(--text-dim);" id="edit-client-last-synced">Last synced: Never</span>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-clear-client-data" style="color: #ff8080; border-color: rgba(218, 13, 10, 0.35); font-size: 0.72rem;">
+            Wipe Overlapped Records
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button class="btn btn-outline" onclick="closeModal('modal-client-sheet')">Cancel</button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary" id="btn-save-client-sheet-only">Save Configuration</button>
+          <button class="btn btn-primary" id="btn-save-and-sync-client-sheet" style="background: linear-gradient(135deg, #10B981, #059669); border-color: #10B981;">
+            Save & Sync Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LOGIN / AUTHENTICATION GATE (PUT IN FRONT) -->
+  <div class="modal-overlay" id="modal-login" style="z-index: 10000; backdrop-filter: blur(20px); background: rgba(7, 3, 17, 0.94);">
+    <div class="modal-card" style="max-width: 480px; border-color: rgba(218, 13, 10, 0.45); box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 40px rgba(218, 13, 10, 0.22);">
+      <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
+        <div style="display: inline-flex; padding: 0.85rem; background: rgba(218, 13, 10, 0.12); border: 1px solid rgba(218, 13, 10, 0.35); border-radius: 50%; margin-bottom: 0.85rem;">
+          <img src="/static/img/tgm_emblem_pure.png" alt="TGM Logo" style="width: 48px; height: 48px; object-fit: contain;">
+        </div>
+        <h2 style="font-family: var(--font-display); font-size: 1.65rem; color: #fff; margin-bottom: 0.25rem;">Think Grow Media</h2>
+        <span class="brand-badge" style="font-size: 0.72rem; letter-spacing: 0.08em;">INTERNAL REPORTING STUDIO</span>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.6rem; line-height: 1.5;">
+          Sign in to access your organization's ad telemetry, BigQuery data warehouse, and client reporting.
+        </p>
+      </div>
+
+      <div class="modal-body" style="padding-top: 0.5rem;">
+        <div id="login-error-alert" style="display: none; padding: 0.75rem 1rem; background: rgba(218, 13, 10, 0.18); border: 1px solid rgba(218, 13, 10, 0.4); border-radius: var(--radius-sm); color: #ff8080; font-size: 0.82rem; margin-bottom: 1rem;"></div>
+
+        <form id="form-login" onsubmit="return false;">
+          <div class="form-group">
+            <label for="login-email">Agency Email Address</label>
+            <input type="email" class="form-input" id="login-email" placeholder="name@thinkgrowmedia.com" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" class="form-input" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.5rem;">
+            Sign In to Studio
+          </button>
+        </form>
+
+        <!-- Quick Switch Demo Credentials -->
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.6rem; text-align: center;">One-Click Demo Profiles</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-quick-admin" style="font-size: 0.75rem; justify-content: center; padding: 0.5rem 0.25rem;">
+              <span style="color: var(--accent-red-light); font-weight: 700;">Admin:</span> Surya (All Clients)
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-quick-member" style="font-size: 0.75rem; justify-content: center; padding: 0.5rem 0.25rem;">
+              <span style="color: var(--accent-cyan); font-weight: 700;">Member:</span> Alex (The Sunya)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SHARE CLIENT LIVE PORTAL LINK -->
+  <div class="modal-overlay" id="modal-share-portal">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.3rem;">🔗</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem;">Client Real-Time Dashboard Link</h3>
+            <span id="share-portal-client-title" style="font-size: 0.78rem; color: var(--accent-emerald-light); font-weight: 700;">Client: The Sunya</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modal-share-portal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+          <div style="font-weight: 700; color: var(--accent-emerald-light); font-size: 0.82rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.4rem;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Zero Login Required &bull; Strict Client Isolation
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.5; margin: 0;">
+            Share this link directly with your client. They can view a real-time performance dashboard anytime without a password.
+            They are strictly isolated to their own data only.
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label>Public Live Portal Link</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" class="form-input" id="share-portal-url-input" readonly style="font-family: var(--font-mono); font-size: 0.82rem; background: rgba(0,0,0,0.5); color: #fff; cursor: text;">
+            <button class="btn btn-primary" id="btn-copy-portal-link" style="white-space: nowrap;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy Link</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.08);">
+          <button class="btn btn-secondary btn-sm" id="btn-open-portal-newtab">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Open Live Portal in New Tab
+          </button>
+          <button class="btn btn-outline btn-sm" id="btn-regenerate-portal-token" style="color: var(--accent-flame-light); border-color: rgba(255,26,68,0.3);">
+            Revoke & Regenerate
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('modal-share-portal')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT TEAM MEMBER -->
+  <div class="modal-overlay" id="modal-team-user">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="modal-team-user-title">Add Team Member</h3>
+        <button class="modal-close" onclick="closeModal('modal-team-user')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-user-id" value="">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" class="form-input" id="team-user-name" placeholder="e.g. Rahul Sharma" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="form-input" id="team-user-email" placeholder="rahul@thinkgrowmedia.com" required>
+        </div>
+        <div class="form-group">
+          <label id="lbl-team-user-password">Password</label>
+          <input type="password" class="form-input" id="team-user-password" placeholder="••••••••">
+          <div id="team-user-pwd-hint" style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.25rem; display: none;">Leave blank to keep existing password</div>
+        </div>
+        <div class="form-group">
+          <label>Role & Permissions</label>
+          <select class="form-select" id="team-user-role">
+            <option value="member" selected>Internal Media Buyer (Restricted to assigned clients)</option>
+            <option value="admin">Agency Super Administrator (Full access to all clients)</option>
+          </select>
+        </div>
+        <div class="form-group" id="team-user-clients-group">
+          <label>Assigned Client Portfolios</label>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem;">Check the specific clients this team member is allowed to see:</div>
+          <div id="team-user-client-checkboxes" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 160px; overflow-y: auto; padding: 0.65rem; background: rgba(0,0,0,0.3); border-radius: var(--radius-xs); border: 1px solid rgba(255,255,255,0.08);">
+            <!-- Populated dynamically with checkboxes -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-team-user')">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-team-user">Save Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/static/js/chart.min.js"></script>
+  <script src="/static/js/charts.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
