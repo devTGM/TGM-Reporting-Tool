@@ -1,0 +1,40 @@
+{
+  "name": "tgm-reporting-tool",
+  "version": "1.0.0",
+  "description": "TGM Reporting Tool - Cross-Platform Ad Analytics & Agency Reporting Studio with Google BigQuery, Looker Studio, and Google Sheets integration",
+  "main": "run.py",
+  "scripts": {
+    "start": "python3 run.py",
+    "dev": "python3 run.py",
+    "backend": "uvicorn backend.app.main:app --reload --port 8000",
+    "serve": "python3 -m http.server 3000 --directory frontend",
+    "lint": "python3 -m flake8 backend --max-line-length=120 || true",
+    "format": "python3 -m black backend || true"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/devTGM/TGM-Reporting-Tool.git"
+  },
+  "keywords": [
+    "reporting",
+    "advertising",
+    "analytics",
+    "looker-studio",
+    "bigquery",
+    "meta-ads",
+    "google-ads",
+    "google-sheets",
+    "fastapi",
+    "dashboard"
+  ],
+  "author": "Think Grow Media <dev@thinkgrowmedia.com>",
+  "license": "UNLICENSED",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/devTGM/TGM-Reporting-Tool/issues"
+  },
+  "homepage": "https://github.com/devTGM/TGM-Reporting-Tool#readme",
+  "devDependencies": {
+    "chart.js": "^4.4.1"
+  }
+}
