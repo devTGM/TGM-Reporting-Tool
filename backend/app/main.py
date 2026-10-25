@@ -45,50 +45,17 @@ app.add_middleware(
 def seed_initial_clients():
     existing = get_all_clients()
     if not existing:
-        sample_clients = [
-            ClientProfile(
-                id="client_apex_01",
-                name="Apex Global Direct",
-                website="https://apexglobal.example.com",
-                industry="eCommerce & Apparel",
-                currency="INR",
-                is_active=True
-            ),
-            ClientProfile(
-                id="client_nexus_02",
-                name="Nexus Enterprise Cloud",
-                website="https://nexuscloud.example.com",
-                industry="B2B SaaS",
-                currency="INR",
-                is_active=True
-            ),
-            ClientProfile(
-                id="client_zenith_03",
-                name="Zenith Health & Wellness",
-                website="https://zenithwellness.example.com",
-                industry="D2C Consumer Brands",
-                currency="INR",
-                is_active=True
-            )
-        ]
-        for c in sample_clients:
-            save_client(c)
-
-    # Check if cleaned_records_v2 has rows
-    records_data = get_cleaned_records(limit=1)
-    if records_data.get("total", 0) == 0:
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        two_weeks_ago = (datetime.utcnow() - timedelta(days=21)).strftime("%Y-%m-%d")
-        sync_service.execute_sync_job(
-            SyncJobRequest(
-                client_ids=["client_apex_01", "client_nexus_02"],
-                platforms=["meta", "google", "linkedin", "tiktok", "snapchat"],
-                start_date=two_weeks_ago,
-                end_date=today,
-                use_mock=True,
-                push_to_bigquery=False
-            )
+        sunya = ClientProfile(
+            id="client_the_sunya_01",
+            name="The Sunya",
+            website="https://thesunya.com",
+            industry="Premium Fashion & Apparel",
+            currency="INR",
+            google_sheet_url="https://docs.google.com/spreadsheets/d/1yulDW_Xm-pmawzXSqBtRmg1WojiP74FpuyN1T6sp-yQ/edit#gid=886192859",
+            google_sheet_gid="886192859",
+            is_active=True
         )
+        save_client(sunya)
 
 seed_initial_clients()
 

@@ -222,30 +222,46 @@ def init_db():
         INSERT INTO users (id, email, password_hash, name, role, assigned_client_ids, is_active, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
         """, (
-            "user_admin_01",
-            "admin@thinkgrowmedia.com",
-            admin_pwd,
-            "Surya (Agency Admin)",
+            "user_admin_surya",
+            "surya@thinkgrowmedia.com",
+            hash_password("ThinkGrow2311@$"),
+            "Surya Kumar (Admin)",
             "admin",
             json.dumps(["*"]),
             now,
             now
         ))
 
-        # 2. Internal Team Member (Access to The Sunya only)
+    # Migration: Ensure surya@thinkgrowmedia.com exists and has ThinkGrow2311@$
+    cursor.execute("SELECT id FROM users WHERE email = 'surya@thinkgrowmedia.com'")
+    surya_row = cursor.fetchone()
+    surya_hash = hash_password("ThinkGrow2311@$")
+    if surya_row:
+        cursor.execute("""
+        UPDATE users 
+        SET password_hash = ?, role = 'admin', assigned_client_ids = ?, updated_at = ?
+        WHERE email = 'surya@thinkgrowmedia.com'
+        """, (surya_hash, json.dumps(["*"]), datetime.utcnow().isoformat()))
+    else:
         cursor.execute("""
         INSERT INTO users (id, email, password_hash, name, role, assigned_client_ids, is_active, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
         """, (
-            "user_member_02",
-            "alex@thinkgrowmedia.com",
-            member_pwd,
-            "Alex Rivera (Media Buyer)",
-            "member",
-            json.dumps(["client_1792858476930"]),
-            now,
-            now
+            "user_admin_surya",
+            "surya@thinkgrowmedia.com",
+            surya_hash,
+            "Surya Kumar (Admin)",
+            "admin",
+            json.dumps(["*"]),
+            datetime.utcnow().isoformat(),
+            datetime.utcnow().isoformat()
         ))
+
+    # Remove demo profiles and demo users
+    cursor.execute("DELETE FROM clients WHERE id IN ('client_apex_01', 'client_nexus_02', 'client_zenith_03')")
+    cursor.execute("DELETE FROM cleaned_records_v2 WHERE client_id IN ('client_apex_01', 'client_nexus_02', 'client_zenith_03')")
+    cursor.execute("DELETE FROM client_share_links WHERE client_id IN ('client_apex_01', 'client_nexus_02', 'client_zenith_03')")
+    cursor.execute("DELETE FROM users WHERE email = 'alex@thinkgrowmedia.com'")
 
     # Ensure each client has an active share link
     cursor.execute("SELECT id, name FROM clients")

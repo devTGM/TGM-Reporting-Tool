@@ -6,6 +6,8 @@
 
 const http = require('http');
 const https = require('https');
+const tls = require('tls');
+const net = require('net');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
@@ -19,106 +21,6 @@ const STORE_FILE = path.join(DATA_DIR, 'store.json');
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-// ----------------- In-Memory & File Store ----------------- //
-function loadStore() {
-  try {
-    if (fs.existsSync(STORE_FILE)) {
-      const data = JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8'));
-      return data;
-    }
-  } catch (err) {
-    console.error('Error loading store, initializing default:', err.message);
-  }
-
-  // Initial Seed State
-  return {
-    clients: [
-      {
-        id: "client_the_sunya_01",
-        name: "The Sunya",
-        website: "https://thesunya.com",
-        industry: "Premium Fashion & Apparel",
-        currency: "INR",
-        is_active: true,
-        google_sheet_url: "https://docs.google.com/spreadsheets/d/1yulDW_Xm-pmawzXSqBtRmg1WojiP74FpuyN1T6sp-yQ/edit#gid=886192859",
-        google_sheet_gid: "886192859",
-        last_sheet_synced_at: null,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: "client_apex_01",
-        name: "Apex Global Direct",
-        website: "https://apexglobal.example.com",
-        industry: "eCommerce & Apparel",
-        currency: "INR",
-        is_active: true,
-        google_sheet_url: "",
-        google_sheet_gid: "0",
-        last_sheet_synced_at: null,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: "client_nexus_02",
-        name: "Nexus Enterprise Cloud",
-        website: "https://nexuscloud.example.com",
-        industry: "B2B SaaS",
-        currency: "INR",
-        is_active: true,
-        google_sheet_url: "",
-        google_sheet_gid: "0",
-        last_sheet_synced_at: null,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: "client_zenith_03",
-        name: "Zenith Health & Wellness",
-        website: "https://zenithwellness.example.com",
-        industry: "D2C Consumer Brands",
-        currency: "INR",
-        is_active: true,
-        google_sheet_url: "",
-        google_sheet_gid: "0",
-        last_sheet_synced_at: null,
-        created_at: new Date().toISOString()
-      }
-    ],
-    users: [
-      {
-        id: "user_admin_01",
-        email: "admin@thinkgrowmedia.com",
-        password_hash: hashPassword("tgmAdmin2026!"),
-        name: "TGM Executive Admin",
-        role: "admin",
-        assigned_client_ids: ["*"],
-        created_at: new Date().toISOString()
-      }
-    ],
-    sessions: {},
-    share_links: {
-      "client_the_sunya_01": {
-        token: "tgm_live_thesunya_88619",
-        client_id: "client_the_sunya_01",
-        client_name: "The Sunya",
-        created_at: new Date().toISOString()
-      }
-    },
-    settings: {
-      looker_embed_url: ""
-    },
-    records: []
-  };
-}
-
-let STORE = loadStore();
-
-function saveStore() {
-  try {
-    fs.writeFileSync(STORE_FILE, JSON.stringify(STORE, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error saving store:', err.message);
-  }
 }
 
 // ----------------- Password & Crypto Helpers ----------------- //
@@ -137,6 +39,124 @@ function verifyPassword(storedHash, password) {
     return false;
   }
 }
+
+// ----------------- In-Memory & File Store ----------------- //
+function loadStore() {
+  try {
+    if (fs.existsSync(STORE_FILE)) {
+      const data = JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8'));
+      return data;
+    }
+  } catch (err) {
+    console.error('Error loading store, initializing default:', err.message);
+  }
+
+  // Initial Seed State (No demo profiles)
+  return {
+    clients: [
+      {
+        id: "client_the_sunya_01",
+        name: "The Sunya",
+        website: "https://thesunya.com",
+        industry: "Premium Fashion & Apparel",
+        currency: "INR",
+        is_active: true,
+        google_sheet_url: "https://docs.google.com/spreadsheets/d/1yulDW_Xm-pmawzXSqBtRmg1WojiP74FpuyN1T6sp-yQ/edit#gid=886192859",
+        google_sheet_gid: "886192859",
+        last_sheet_synced_at: null,
+        created_at: new Date().toISOString()
+      }
+    ],
+    users: [
+      {
+        id: "user_admin_surya",
+        email: "surya@thinkgrowmedia.com",
+        password_hash: hashPassword("ThinkGrow2311@$"),
+        name: "Surya Kumar (Admin)",
+        role: "admin",
+        assigned_client_ids: ["*"],
+        created_at: new Date().toISOString()
+      }
+    ],
+    sessions: {},
+    share_links: {
+      "client_the_sunya_01": {
+        token: "tgm_live_thesunya_88619",
+        client_id: "client_the_sunya_01",
+        client_name: "The Sunya",
+        created_at: new Date().toISOString()
+      }
+    },
+    settings: {
+      looker_embed_url: ""
+    },
+    notifications: [],
+    records: []
+  };
+}
+
+let STORE = loadStore();
+
+function saveStore() {
+  try {
+    fs.writeFileSync(STORE_FILE, JSON.stringify(STORE, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error saving store:', err.message);
+  }
+}
+
+// Auto-migration & cleanup on every boot
+function migrateStore() {
+  const DEMO_CLIENT_IDS = ['client_apex_01', 'client_nexus_02', 'client_zenith_03'];
+
+  // 1. Remove demo clients & demo ad records
+  STORE.clients = (STORE.clients || []).filter(c => !DEMO_CLIENT_IDS.includes(c.id));
+  STORE.records = (STORE.records || []).filter(r => !DEMO_CLIENT_IDS.includes(r.client_id));
+
+  // 2. Ensure The Sunya exists
+  if (!STORE.clients.some(c => c.name === "The Sunya" || c.id === "client_the_sunya_01")) {
+    STORE.clients.unshift({
+      id: "client_the_sunya_01",
+      name: "The Sunya",
+      website: "https://thesunya.com",
+      industry: "Premium Fashion & Apparel",
+      currency: "INR",
+      is_active: true,
+      google_sheet_url: "https://docs.google.com/spreadsheets/d/1yulDW_Xm-pmawzXSqBtRmg1WojiP74FpuyN1T6sp-yQ/edit#gid=886192859",
+      google_sheet_gid: "886192859",
+      last_sheet_synced_at: null,
+      created_at: new Date().toISOString()
+    });
+  }
+
+  // 3. Ensure admin surya@thinkgrowmedia.com with ThinkGrow2311@$ exists
+  if (!STORE.users) STORE.users = [];
+  const suryaIdx = STORE.users.findIndex(u => u.email.toLowerCase() === "surya@thinkgrowmedia.com");
+  const suryaUser = {
+    id: "user_admin_surya",
+    email: "surya@thinkgrowmedia.com",
+    password_hash: hashPassword("ThinkGrow2311@$"),
+    name: "Surya Kumar (Admin)",
+    role: "admin",
+    assigned_client_ids: ["*"],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  if (suryaIdx >= 0) {
+    STORE.users[suryaIdx] = suryaUser;
+  } else {
+    STORE.users.unshift(suryaUser);
+  }
+
+  // Remove demo user alex
+  STORE.users = STORE.users.filter(u => u.email.toLowerCase() !== "alex@thinkgrowmedia.com");
+
+  if (!STORE.notifications) STORE.notifications = [];
+  saveStore();
+}
+
+migrateStore();
 
 // ----------------- Nomenclature & KPI Math ----------------- //
 function parseFunnelStage(text = "") {
@@ -366,6 +386,161 @@ function parseCsv(csvText) {
   }
 
   return rows;
+}
+
+// ----------------- Mail Notification & SMTP Engine ----------------- //
+function sendViaSmtpSocket({ host, port = 465, user, pass, from, to, subject, html, text }) {
+  return new Promise((resolve, reject) => {
+    let socket;
+    const isTls = port === 465;
+
+    function handleStream(s) {
+      let buffer = '';
+      let step = 0;
+
+      function send(cmd) {
+        s.write(cmd + '\r\n');
+      }
+
+      s.on('data', (chunk) => {
+        buffer += chunk.toString();
+        const lines = buffer.split('\r\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          const code = parseInt(line.substring(0, 3), 10);
+          if (line[3] === '-') continue;
+
+          if (step === 0 && code === 220) {
+            step = 1;
+            send(`EHLO report.thinkgrowmedia.com`);
+          } else if (step === 1 && code === 250) {
+            step = 2;
+            send(`AUTH LOGIN`);
+          } else if (step === 2 && code === 334) {
+            step = 3;
+            send(Buffer.from(user).toString('base64'));
+          } else if (step === 3 && code === 334) {
+            step = 4;
+            send(Buffer.from(pass).toString('base64'));
+          } else if (step === 4 && code === 235) {
+            step = 5;
+            const cleanFrom = from.includes('<') ? from.match(/<([^>]+)>/)[1] : from;
+            send(`MAIL FROM:<${cleanFrom}>`);
+          } else if (step === 5 && code === 250) {
+            step = 6;
+            send(`RCPT TO:<${to}>`);
+          } else if (step === 6 && code === 250) {
+            step = 7;
+            send(`DATA`);
+          } else if (step === 7 && code === 354) {
+            step = 8;
+            const boundary = `----_=_NextPart_${Date.now()}`;
+            const mail = [
+              `From: ${from}`,
+              `To: ${to}`,
+              `Subject: ${subject}`,
+              `MIME-Version: 1.0`,
+              `Content-Type: multipart/alternative; boundary="${boundary}"`,
+              ``,
+              `--${boundary}`,
+              `Content-Type: text/plain; charset=utf-8`,
+              ``,
+              text || html.replace(/<[^>]+>/g, ''),
+              ``,
+              `--${boundary}`,
+              `Content-Type: text/html; charset=utf-8`,
+              ``,
+              html,
+              ``,
+              `--${boundary}--`,
+              `.`
+            ].join('\r\n');
+            send(mail);
+          } else if (step === 8 && code === 250) {
+            step = 9;
+            send(`QUIT`);
+            resolve(true);
+          } else if (code >= 400) {
+            reject(new Error(`SMTP error (${code}): ${line}`));
+          }
+        }
+      });
+
+      s.on('error', reject);
+      s.setTimeout(12000, () => {
+        s.destroy();
+        reject(new Error('SMTP connection timed out'));
+      });
+    }
+
+    if (isTls) {
+      socket = tls.connect(port, host, { rejectUnauthorized: false }, () => {
+        handleStream(socket);
+      });
+      socket.on('error', reject);
+    } else {
+      socket = net.connect(port, host, () => {
+        handleStream(socket);
+      });
+      socket.on('error', reject);
+    }
+  });
+}
+
+async function sendEmailNotification({ to, subject, html, text }) {
+  const smtpHost = process.env.SMTP_HOST || "";
+  const smtpPort = parseInt(process.env.SMTP_PORT || "465", 10);
+  const smtpUser = process.env.SMTP_USER || "";
+  const smtpPass = process.env.SMTP_PASS || "";
+  const smtpFrom = process.env.SMTP_FROM || `"Think Grow Media" <notifications@thinkgrowmedia.com>`;
+
+  const notif = {
+    id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    to,
+    subject,
+    preview: (text || html.replace(/<[^>]+>/g, '')).substring(0, 160),
+    created_at: new Date().toISOString(),
+    status: "queued"
+  };
+
+  if (!STORE.notifications) STORE.notifications = [];
+  STORE.notifications.unshift(notif);
+  saveStore();
+
+  console.log(`\n================= [MAIL NOTIFICATION] =================`);
+  console.log(`To: ${to}`);
+  console.log(`Subject: ${subject}`);
+  console.log(`Time: ${new Date().toISOString()}`);
+
+  if (smtpHost && smtpUser && smtpPass) {
+    try {
+      await sendViaSmtpSocket({
+        host: smtpHost,
+        port: smtpPort,
+        user: smtpUser,
+        pass: smtpPass,
+        from: smtpFrom,
+        to,
+        subject,
+        html,
+        text
+      });
+      notif.status = "sent_via_smtp";
+      saveStore();
+      console.log(`[SMTP] Successfully delivered email to ${to} via ${smtpHost}`);
+    } catch (err) {
+      notif.status = `smtp_error: ${err.message}`;
+      saveStore();
+      console.error(`[SMTP ERROR] Could not deliver to ${to}:`, err.message);
+    }
+  } else {
+    notif.status = "logged_local";
+    saveStore();
+    console.log(`[INFO] Live SMTP delivery logged. Set SMTP_HOST, SMTP_USER, SMTP_PASS to dispatch via mail server.`);
+  }
+
+  return notif;
 }
 
 // ----------------- Request Handlers ----------------- //
@@ -739,11 +914,173 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  // Team Users
+  // Team Users: List
   if (pathname === '/api/team/users' && req.method === 'GET') {
     return sendJson(res, 200, STORE.users.map(u => ({
       id: u.id, email: u.email, name: u.name, role: u.role, assigned_client_ids: u.assigned_client_ids
     })));
+  }
+
+  // Team Users: Add User + Automatic Email Notification
+  if (pathname === '/api/team/users' && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') {
+      return sendJson(res, 403, { detail: "Admin privileges required." });
+    }
+
+    const body = await parseBody(req);
+    const email = (body.email || '').trim().toLowerCase();
+    const name = (body.name || '').trim();
+    const password = body.password || '';
+    const role = body.role || 'member';
+    const assignedClientIds = Array.isArray(body.assigned_client_ids) ? body.assigned_client_ids : ['*'];
+
+    if (!email || !password) {
+      return sendJson(res, 400, { detail: "Email and password are required." });
+    }
+
+    if (STORE.users.some(u => u.email.toLowerCase() === email)) {
+      return sendJson(res, 400, { detail: "User with this email already exists." });
+    }
+
+    const newUser = {
+      id: `user_${Date.now()}`,
+      email: email,
+      password_hash: hashPassword(password),
+      name: name || email.split('@')[0],
+      role: role,
+      assigned_client_ids: assignedClientIds,
+      created_at: new Date().toISOString()
+    };
+
+    STORE.users.push(newUser);
+    saveStore();
+
+    // Human-readable client access list
+    const assignedNames = assignedClientIds.includes('*')
+      ? "All Agency Clients"
+      : STORE.clients
+          .filter(c => assignedClientIds.includes(c.id))
+          .map(c => c.name)
+          .join(', ') || "No clients assigned";
+
+    // 1. Mail Notification to Admin (surya@thinkgrowmedia.com)
+    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || "surya@thinkgrowmedia.com";
+    const adminHtml = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f121d; color: #f1f5f9; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;">
+        <div style="background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); padding: 24px; text-align: center;">
+          <h2 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;">Think Grow Media &bull; Reporting Studio</h2>
+          <p style="margin: 6px 0 0; color: rgba(255,255,255,0.85); font-size: 13px;">Security & Access Control Alert</p>
+        </div>
+        <div style="padding: 24px;">
+          <p style="font-size: 15px; margin-top: 0;">Hello Surya,</p>
+          <p style="font-size: 14px; color: #94a3b8; line-height: 1.5;">A new internal user account has just been provisioned on the TGM Reporting Studio platform:</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background: #131826; border-radius: 8px; overflow: hidden; font-size: 13px;">
+            <tr><td style="padding: 10px 14px; color: #64748b; border-bottom: 1px solid #1e293b; width: 35%;">User Name</td><td style="padding: 10px 14px; font-weight: 600; color: #f8fafc; border-bottom: 1px solid #1e293b;">${name}</td></tr>
+            <tr><td style="padding: 10px 14px; color: #64748b; border-bottom: 1px solid #1e293b;">Email</td><td style="padding: 10px 14px; font-weight: 600; color: #38bdf8; border-bottom: 1px solid #1e293b;">${email}</td></tr>
+            <tr><td style="padding: 10px 14px; color: #64748b; border-bottom: 1px solid #1e293b;">Role</td><td style="padding: 10px 14px; font-weight: 600; color: ${role === 'admin' ? '#ec4899' : '#10b981'}; border-bottom: 1px solid #1e293b;">${role.toUpperCase()}</td></tr>
+            <tr><td style="padding: 10px 14px; color: #64748b; border-bottom: 1px solid #1e293b;">Client Access</td><td style="padding: 10px 14px; color: #f8fafc; border-bottom: 1px solid #1e293b;">${assignedNames}</td></tr>
+            <tr><td style="padding: 10px 14px; color: #64748b;">Created At</td><td style="padding: 10px 14px; color: #94a3b8;">${new Date().toUTCString()}</td></tr>
+          </table>
+
+          <div style="text-align: center; margin: 28px 0 16px;">
+            <a href="https://report.thinkgrowmedia.com/" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">Open TGM Reporting Studio</a>
+          </div>
+        </div>
+      </div>
+    `;
+
+    sendEmailNotification({
+      to: adminEmail,
+      subject: `[TGM Alert] New Internal User Added: ${name} (${email})`,
+      html: adminHtml,
+      text: `New user ${name} (${email}) added with role ${role.toUpperCase()} and client access: ${assignedNames}.`
+    }).catch(err => console.error('Admin email error:', err));
+
+    // 2. Welcome Mail to the New User
+    const userHtml = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f121d; color: #f1f5f9; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;">
+        <div style="background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); padding: 24px; text-align: center;">
+          <h2 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 700;">Welcome to Think Grow Media</h2>
+          <p style="margin: 6px 0 0; color: rgba(255,255,255,0.85); font-size: 13px;">Your Agency Reporting Studio Account is Ready</p>
+        </div>
+        <div style="padding: 24px;">
+          <p style="font-size: 15px; margin-top: 0;">Hi ${name},</p>
+          <p style="font-size: 14px; color: #94a3b8; line-height: 1.5;">You have been granted access to the <strong>Think Grow Media Reporting Studio</strong>. Below are your login credentials:</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background: #131826; border-radius: 8px; overflow: hidden; font-size: 13px;">
+            <tr><td style="padding: 10px 14px; color: #64748b; border-bottom: 1px solid #1e293b; width: 35%;">Portal URL</td><td style="padding: 10px 14px; font-weight: 600; color: #38bdf8; border-bottom: 1px solid #1e293b;"><a href="https://report.thinkgrowmedia.com/" style="color: #38bdf8; text-decoration: none;">https://report.thinkgrowmedia.com/</a></td></tr>
+            <tr><td style="padding: 10px 14px; color: #64748b; border-bottom: 1px solid #1e293b;">Email</td><td style="padding: 10px 14px; font-weight: 600; color: #f8fafc; border-bottom: 1px solid #1e293b;">${email}</td></tr>
+            <tr><td style="padding: 10px 14px; color: #64748b; border-bottom: 1px solid #1e293b;">Password</td><td style="padding: 10px 14px; font-family: monospace; font-size: 14px; color: #fbbf24; border-bottom: 1px solid #1e293b;">${password}</td></tr>
+            <tr><td style="padding: 10px 14px; color: #64748b; border-bottom: 1px solid #1e293b;">Assigned Clients</td><td style="padding: 10px 14px; color: #f8fafc; border-bottom: 1px solid #1e293b;">${assignedNames}</td></tr>
+            <tr><td style="padding: 10px 14px; color: #64748b;">Role</td><td style="padding: 10px 14px; color: #10b981; font-weight: 600;">${role.toUpperCase()}</td></tr>
+          </table>
+
+          <div style="text-align: center; margin: 28px 0 16px;">
+            <a href="https://report.thinkgrowmedia.com/" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">Sign In to Reporting Studio</a>
+          </div>
+        </div>
+      </div>
+    `;
+
+    sendEmailNotification({
+      to: email,
+      subject: `Welcome to Think Grow Media Reporting Studio - Login Details`,
+      html: userHtml,
+      text: `Hi ${name}, your TGM Reporting Studio account is ready. Portal: https://report.thinkgrowmedia.com/ | Email: ${email} | Password: ${password}`
+    }).catch(err => console.error('User email error:', err));
+
+    return sendJson(res, 200, {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+      assigned_client_ids: newUser.assigned_client_ids,
+      notification_sent: true
+    });
+  }
+
+  // Team Users: Update
+  const teamUserMatch = pathname.match(/^\/api\/team\/users\/([a-zA-Z0-9_-]+)$/);
+  if (teamUserMatch && req.method === 'PUT') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Admin privileges required." });
+    const userId = teamUserMatch[1];
+    const target = STORE.users.find(u => u.id === userId);
+    if (!target) return sendJson(res, 404, { detail: "User not found." });
+
+    const body = await parseBody(req);
+    if (body.name) target.name = body.name;
+    if (body.role) target.role = body.role;
+    if (body.assigned_client_ids) target.assigned_client_ids = body.assigned_client_ids;
+    if (body.password) target.password_hash = hashPassword(body.password);
+    target.updated_at = new Date().toISOString();
+    saveStore();
+
+    return sendJson(res, 200, {
+      id: target.id, email: target.email, name: target.name, role: target.role, assigned_client_ids: target.assigned_client_ids
+    });
+  }
+
+  // Team Users: Delete
+  if (teamUserMatch && req.method === 'DELETE') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Admin privileges required." });
+    const userId = teamUserMatch[1];
+    const target = STORE.users.find(u => u.id === userId);
+    if (!target) return sendJson(res, 404, { detail: "User not found." });
+    if (target.email.toLowerCase() === "surya@thinkgrowmedia.com") {
+      return sendJson(res, 400, { detail: "Cannot delete the primary agency super administrator." });
+    }
+    STORE.users = STORE.users.filter(u => u.id !== userId);
+    saveStore();
+    return sendJson(res, 200, { success: true, message: "User deleted." });
+  }
+
+  // Notifications API
+  if (pathname === '/api/notifications' && req.method === 'GET') {
+    return sendJson(res, 200, STORE.notifications || []);
   }
 
   // BigQuery & Looker
