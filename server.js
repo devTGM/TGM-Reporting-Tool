@@ -420,13 +420,18 @@ const MIME_TYPES = {
 };
 
 function serveStatic(req, res, pathname) {
+  let cleanPath = pathname;
+  if (cleanPath.startsWith('/static/')) {
+    cleanPath = cleanPath.slice(7); // removes '/static'
+  }
+
   let filePath = '';
-  if (pathname === '/' || pathname === '/index.html') {
+  if (cleanPath === '/' || cleanPath === '' || cleanPath === '/index.html') {
     filePath = path.join(FRONTEND_DIR, 'index.html');
-  } else if (pathname === '/portal' || pathname.startsWith('/portal/')) {
+  } else if (cleanPath === '/portal' || cleanPath.startsWith('/portal/') || cleanPath === '/portal.html') {
     filePath = path.join(FRONTEND_DIR, 'portal.html');
   } else {
-    filePath = path.join(FRONTEND_DIR, pathname);
+    filePath = path.join(FRONTEND_DIR, cleanPath);
   }
 
   fs.stat(filePath, (err, stats) => {
