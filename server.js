@@ -1014,9 +1014,9 @@ const server = http.createServer(async (req, res) => {
     const link = Object.values(STORE.share_links).find(l => l.token === token);
     if (!link) return sendJson(res, 404, { detail: "Invalid share link." });
 
-    const summary = computePerformanceSummary(link.client_id, query.start_date, query.end_date);
+    const summary = computePerformanceSummary(link.client_id, query.start_date, query.end_date, query.timeframe || "day");
     return sendJson(res, 200, {
-      client: { client_id: link.client_id, name: link.client_name },
+      client: { client_id: link.client_id, name: link.client_name, client_name: link.client_name },
       summary: summary
     });
   }
@@ -1031,7 +1031,7 @@ const server = http.createServer(async (req, res) => {
     const dimension = query.dimension || "category";
     const table = computeNomenclatureTable(dimension, link.client_id, query.start_date, query.end_date);
     return sendJson(res, 200, {
-      client: { client_id: link.client_id, name: link.client_name },
+      client: { client_id: link.client_id, name: link.client_name, client_name: link.client_name },
       dimension: dimension,
       records: table
     });
@@ -1040,7 +1040,7 @@ const server = http.createServer(async (req, res) => {
   // Analytics: Summary
   if (pathname === '/api/data/summary' && req.method === 'GET') {
     const clientId = query.client_id || (STORE.clients[0] ? STORE.clients[0].id : "");
-    const summary = computePerformanceSummary(clientId, query.start_date, query.end_date);
+    const summary = computePerformanceSummary(clientId, query.start_date, query.end_date, query.timeframe || "day");
     return sendJson(res, 200, summary);
   }
 
@@ -1314,7 +1314,24 @@ const server = http.createServer(async (req, res) => {
 });
 
 // ----------------- Analytics Calculation Engines ----------------- //
-function computePerformanceSummary(clientId, startDate, endDate) {
+function getWeekPeriod(dateStr) {
+  if (!dateStr) return "2026-W01";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "2026-W01";
+  const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNr = (target.getUTCDay() + 6) % 7;
+  target.setUTCDate(target.getUTCDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setUTCMonth(0, 1);
+  if (target.getUTCDay() !== 4) {
+    target.setUTCMonth(0, 1 + ((4 - target.getUTCDay()) + 7) % 7);
+  }
+  const weekNumber = 1 + Math.ceil((firstThursday - target) / 604800000);
+  const year = new Date(firstThursday).getUTCFullYear();
+  return `${year}-W${String(weekNumber).padStart(2, '0')}`;
+}
+
+function computePerformanceSummary(clientId, startDate, endDate, timeframe = "day") {
   let records = STORE.records;
   if (clientId) records = records.filter(r => r.client_id === clientId);
   if (startDate) records = records.filter(r => r.date >= startDate);
@@ -1339,72 +1356,192 @@ function computePerformanceSummary(clientId, startDate, endDate) {
     video_plays_3s: 0, thruplays_15s: 0
   });
 
-  const overall_roas = totals.spend > 0 ? Math.round((totals.revenue / totals.spend) * 100) / 100 : 0;
-  const cpa = totals.purchases > 0 ? Math.round((totals.spend / totals.purchases) * 100) / 100 : 0;
-  const ctr = totals.impressions > 0 ? Math.round((totals.link_clicks / totals.impressions) * 10000) / 100 : 0;
-  const cpc = totals.link_clicks > 0 ? Math.round((totals.spend / totals.link_clicks) * 100) / 100 : 0;
-  const cpm = totals.impressions > 0 ? Math.round((totals.spend / totals.impressions) * 100000) / 100 : 0;
+  const spend = totals.spend;
+  const rev = totals.revenue;
+  const purchases = totals.purchases;
+  const lpv = totals.landing_page_views;
+  const clicks = totals.link_clicks;
+  const impr = totals.impressions;
+  const reach = totals.reach;
+  const v3s = totals.video_plays_3s;
+  const v15s = totals.thruplays_15s;
+  const atc = totals.adds_to_cart;
+  const ic = totals.checkouts_initiated;
 
-  // Group by Date for Trends
+  const purchase_roas = spend > 0 ? Math.round((rev / spend) * 100) / 100 : 0.0;
+  const cost_per_purchase = purchases > 0 ? Math.round((spend / purchases) * 100) / 100 : 0.0;
+  const avg_purchase_conversion_value = purchases > 0 ? Math.round((rev / purchases) * 100) / 100 : 0.0;
+  const purchase_rate_per_lpv = lpv > 0 ? Math.round((purchases / lpv) * 10000) / 100 : 0.0;
+  const cost_per_lpv = lpv > 0 ? Math.round((spend / lpv) * 100) / 100 : 0.0;
+  const lpv_rate_per_link_clicks = clicks > 0 ? Math.round((lpv / clicks) * 10000) / 100 : 0.0;
+  const frequency = reach > 0 ? Math.round((impr / reach) * 100) / 100 : 1.0;
+  const cpm = impr > 0 ? Math.round((spend / impr) * 100000) / 100 : 0.0;
+  const cpc = clicks > 0 ? Math.round((spend / clicks) * 100) / 100 : 0.0;
+  const ctr = impr > 0 ? Math.round((clicks / impr) * 10000) / 100 : 0.0;
+  const video_plays_3s_rate_per_impressions = impr > 0 ? Math.round((v3s / impr) * 10000) / 100 : 0.0;
+  const cost_per_video_play_3s = v3s > 0 ? Math.round((spend / v3s) * 1000) / 1000 : 0.0;
+  const cost_per_thruplay_15s = v15s > 0 ? Math.round((spend / v15s) * 1000) / 1000 : 0.0;
+  const cost_per_add_to_cart = atc > 0 ? Math.round((spend / atc) * 100) / 100 : 0.0;
+  const add_to_cart_pct = lpv > 0 ? Math.round((atc / lpv) * 10000) / 100 : 0.0;
+  const cost_per_checkout_initiated = ic > 0 ? Math.round((spend / ic) * 100) / 100 : 0.0;
+  const checkout_initiated_pct = lpv > 0 ? Math.round((ic / lpv) * 10000) / 100 : 0.0;
+
+  const totalsObj = {
+    total_spend: Math.round(spend * 100) / 100,
+    total_conversion_value: Math.round(rev * 100) / 100,
+    total_revenue: Math.round(rev * 100) / 100,
+    total_purchases: purchases,
+    purchase_roas: purchase_roas,
+    overall_roas: purchase_roas,
+    cost_per_purchase: cost_per_purchase,
+    cpa: cost_per_purchase,
+    avg_purchase_conversion_value: avg_purchase_conversion_value,
+    total_reach: reach,
+    frequency: frequency,
+    total_impressions: impr,
+    total_link_clicks: clicks,
+    total_lpv: lpv,
+    total_landing_page_views: lpv,
+    cost_per_lpv: cost_per_lpv,
+    lpv_rate_per_link_clicks: lpv_rate_per_link_clicks,
+    purchase_rate_per_lpv: purchase_rate_per_lpv,
+    total_adds_to_cart: atc,
+    add_to_cart_pct: add_to_cart_pct,
+    cost_per_add_to_cart: cost_per_add_to_cart,
+    total_checkouts_initiated: ic,
+    checkout_initiated_pct: checkout_initiated_pct,
+    cost_per_checkout_initiated: cost_per_checkout_initiated,
+    total_video_plays_3s: v3s,
+    video_plays_3s_rate_per_impressions: video_plays_3s_rate_per_impressions,
+    cost_per_video_play_3s: cost_per_video_play_3s,
+    total_thruplays_15s: v15s,
+    cost_per_thruplay_15s: cost_per_thruplay_15s,
+    ctr: ctr,
+    cpc: cpc,
+    cpm: cpm
+  };
+
+  // Group by Date/Bucket for Trends
   const trendMap = {};
   records.forEach(r => {
-    if (!trendMap[r.date]) {
-      trendMap[r.date] = { date: r.date, spend: 0, revenue: 0, purchases: 0, impressions: 0, link_clicks: 0 };
+    let key = r.date;
+    if (timeframe === 'week') {
+      key = getWeekPeriod(r.date);
+    } else if (timeframe === 'month') {
+      key = (r.date || '').slice(0, 7);
     }
-    trendMap[r.date].spend += r.spend || 0;
-    trendMap[r.date].revenue += r.purchases_conversion_value || 0;
-    trendMap[r.date].purchases += r.purchases || 0;
-    trendMap[r.date].impressions += r.impressions || 0;
-    trendMap[r.date].link_clicks += r.link_clicks || 0;
+    if (!trendMap[key]) {
+      trendMap[key] = {
+        period: key,
+        date: key,
+        time_bucket: key,
+        spend: 0,
+        revenue: 0,
+        conversion_value: 0,
+        purchases: 0,
+        impressions: 0,
+        link_clicks: 0,
+        clicks: 0,
+        reach: 0
+      };
+    }
+    trendMap[key].spend += r.spend || 0;
+    trendMap[key].revenue += r.purchases_conversion_value || 0;
+    trendMap[key].conversion_value += r.purchases_conversion_value || 0;
+    trendMap[key].purchases += r.purchases || 0;
+    trendMap[key].impressions += r.impressions || 0;
+    trendMap[key].link_clicks += r.link_clicks || 0;
+    trendMap[key].clicks += r.link_clicks || 0;
+    trendMap[key].reach += r.reach || 0;
   });
 
-  const daily_trends = Object.values(trendMap).sort((a, b) => a.date.localeCompare(b.date)).map(d => ({
+  const time_trends = Object.values(trendMap).sort((a, b) => a.date.localeCompare(b.date)).map(d => ({
+    period: d.period,
     date: d.date,
+    time_bucket: d.time_bucket,
     spend: Math.round(d.spend * 100) / 100,
     revenue: Math.round(d.revenue * 100) / 100,
+    conversion_value: Math.round(d.revenue * 100) / 100,
     purchases: d.purchases,
+    purchase_roas: d.spend > 0 ? Math.round((d.revenue / d.spend) * 100) / 100 : 0,
     roas: d.spend > 0 ? Math.round((d.revenue / d.spend) * 100) / 100 : 0,
     cpa: d.purchases > 0 ? Math.round((d.spend / d.purchases) * 100) / 100 : 0,
     impressions: d.impressions,
-    clicks: d.link_clicks
+    clicks: d.link_clicks,
+    link_clicks: d.link_clicks,
+    reach: d.reach
   }));
 
-  // Platform Breakdown
+  // Platform Breakdown (by_platform)
   const platformMap = {};
   records.forEach(r => {
     const p = r.platform || 'Meta';
-    if (!platformMap[p]) platformMap[p] = { platform: p, spend: 0, revenue: 0, purchases: 0, impressions: 0 };
+    if (!platformMap[p]) {
+      platformMap[p] = {
+        platform: p,
+        spend: 0,
+        revenue: 0,
+        conversion_value: 0,
+        purchases: 0,
+        impressions: 0,
+        link_clicks: 0,
+        landing_page_views: 0,
+        reach: 0,
+        adds_to_cart: 0,
+        checkouts_initiated: 0
+      };
+    }
     platformMap[p].spend += r.spend || 0;
     platformMap[p].revenue += r.purchases_conversion_value || 0;
+    platformMap[p].conversion_value += r.purchases_conversion_value || 0;
     platformMap[p].purchases += r.purchases || 0;
     platformMap[p].impressions += r.impressions || 0;
+    platformMap[p].link_clicks += r.link_clicks || 0;
+    platformMap[p].landing_page_views += r.landing_page_views || 0;
+    platformMap[p].reach += r.reach || 0;
+    platformMap[p].adds_to_cart += r.adds_to_cart || 0;
+    platformMap[p].checkouts_initiated += r.checkouts_initiated || 0;
   });
 
-  const platform_breakdown = Object.values(platformMap).map(p => ({
-    platform: p.platform,
-    spend: Math.round(p.spend * 100) / 100,
-    revenue: Math.round(p.revenue * 100) / 100,
-    roas: p.spend > 0 ? Math.round((p.revenue / p.spend) * 100) / 100 : 0
-  }));
+  const by_platform = Object.values(platformMap).map(p => {
+    const pSpend = Math.round(p.spend * 100) / 100;
+    const pRev = Math.round(p.revenue * 100) / 100;
+    const pRoas = pSpend > 0 ? Math.round((pRev / pSpend) * 100) / 100 : 0;
+    const pCpa = p.purchases > 0 ? Math.round((pSpend / p.purchases) * 100) / 100 : 0;
+    const pCpc = p.link_clicks > 0 ? Math.round((pSpend / p.link_clicks) * 100) / 100 : 0;
+    const pCpm = p.impressions > 0 ? Math.round((pSpend / p.impressions) * 100000) / 100 : 0;
+    const pCtr = p.impressions > 0 ? Math.round((p.link_clicks / p.impressions) * 10000) / 100 : 0;
+    return {
+      platform: p.platform,
+      spend: pSpend,
+      revenue: pRev,
+      conversion_value: pRev,
+      purchases: p.purchases,
+      purchase_roas: pRoas,
+      roas: pRoas,
+      cpa: pCpa,
+      cpc: pCpc,
+      cpm: pCpm,
+      ctr: pCtr,
+      impressions: p.impressions,
+      link_clicks: p.link_clicks,
+      clicks: p.link_clicks,
+      landing_page_views: p.landing_page_views,
+      reach: p.reach,
+      adds_to_cart: p.adds_to_cart,
+      checkouts_initiated: p.checkouts_initiated
+    };
+  }).sort((a, b) => b.spend - a.spend);
 
   return {
-    totals: {
-      total_spend: Math.round(totals.spend * 100) / 100,
-      total_revenue: Math.round(totals.revenue * 100) / 100,
-      total_purchases: totals.purchases,
-      overall_roas: overall_roas,
-      cpa: cpa,
-      ctr: ctr,
-      cpc: cpc,
-      cpm: cpm,
-      total_impressions: totals.impressions,
-      total_link_clicks: totals.link_clicks,
-      total_landing_page_views: totals.landing_page_views,
-      total_adds_to_cart: totals.adds_to_cart,
-      total_checkouts_initiated: totals.checkouts_initiated
-    },
-    daily_trends: daily_trends,
-    platform_breakdown: platform_breakdown,
+    totals: totalsObj,
+    kpis: totalsObj,
+    by_platform: by_platform,
+    platform_breakdown: by_platform,
+    time_trend: time_trends,
+    daily_trends: time_trends,
+    daily_trend: time_trends,
+    trends: time_trends,
     total_records: records.length
   };
 }
@@ -1417,22 +1554,43 @@ function computeNomenclatureTable(dimension, clientId, startDate, endDate) {
 
   const dimFieldMap = {
     category: "category_collection",
+    category_collection: "category_collection",
+    "category/collection": "category_collection",
     product: "product_name",
+    product_name: "product_name",
+    productname: "product_name",
     funnel: "funnel",
     offer: "sale_offer",
+    sale_offer: "sale_offer",
+    salename_offer: "sale_offer",
+    "salename+offer": "sale_offer",
+    "(salename+offer)": "sale_offer",
+    sale: "sale_offer",
     audience: "audience_type",
+    audience_type: "audience_type",
+    audiencetype: "audience_type",
     hook: "concept_angle_hook",
+    concept: "concept_angle_hook",
+    concept_angle_hook: "concept_angle_hook",
+    "concept/angle-hook": "concept_angle_hook",
     format: "format",
-    landing_page: "landing_page"
+    landing_page: "landing_page",
+    landingpage: "landing_page"
   };
 
-  const field = dimFieldMap[dimension] || "category_collection";
+  const dimKey = (dimension || "category").toLowerCase().trim();
+  const field = dimFieldMap[dimKey] || "category_collection";
   const group = {};
 
   records.forEach(r => {
-    const val = r[field] || "Unknown";
-    if (!group[val]) {
-      group[val] = {
+    const val = r[field] || "Catalog-Wide / General";
+    const week = getWeekPeriod(r.date);
+    const groupKey = `${week}___${val}`;
+
+    if (!group[groupKey]) {
+      group[groupKey] = {
+        week_period: week,
+        nomenclature_value: val,
         dimension_value: val,
         spend: 0,
         revenue: 0,
@@ -1444,29 +1602,63 @@ function computeNomenclatureTable(dimension, clientId, startDate, endDate) {
         ic: 0
       };
     }
-    group[val].spend += r.spend || 0;
-    group[val].revenue += r.purchases_conversion_value || 0;
-    group[val].purchases += r.purchases || 0;
-    group[val].lpv += r.landing_page_views || 0;
-    group[val].impressions += r.impressions || 0;
-    group[val].clicks += r.link_clicks || 0;
-    group[val].atc += r.adds_to_cart || 0;
-    group[val].ic += r.checkouts_initiated || 0;
+    group[groupKey].spend += r.spend || 0;
+    group[groupKey].revenue += r.purchases_conversion_value || 0;
+    group[groupKey].purchases += r.purchases || 0;
+    group[groupKey].lpv += r.landing_page_views || 0;
+    group[groupKey].impressions += r.impressions || 0;
+    group[groupKey].clicks += r.link_clicks || 0;
+    group[groupKey].atc += r.adds_to_cart || 0;
+    group[groupKey].ic += r.checkouts_initiated || 0;
   });
 
-  return Object.values(group).map(g => ({
-    dimension_value: g.dimension_value,
-    spend: Math.round(g.spend * 100) / 100,
-    purchases_conversion_value: Math.round(g.revenue * 100) / 100,
-    purchases: g.purchases,
-    purchase_roas: g.spend > 0 ? Math.round((g.revenue / g.spend) * 100) / 100 : 0,
-    cost_per_purchase: g.purchases > 0 ? Math.round((g.spend / g.purchases) * 100) / 100 : 0,
-    landing_page_views: g.lpv,
-    adds_to_cart: g.atc,
-    checkouts_initiated: g.ic,
-    ctr: g.impressions > 0 ? Math.round((g.clicks / g.impressions) * 10000) / 100 : 0,
-    cpc: g.clicks > 0 ? Math.round((g.spend / g.clicks) * 100) / 100 : 0
-  })).sort((a, b) => b.spend - a.spend);
+  return Object.values(group).map(g => {
+    const spend = Math.round(g.spend * 100) / 100;
+    const rev = Math.round(g.revenue * 100) / 100;
+    const purchases = g.purchases;
+    const lpv = g.lpv;
+    const clicks = g.clicks;
+    const impr = g.impressions;
+    const atc = g.atc;
+    const ic = g.ic;
+
+    const roas = spend > 0 ? Math.round((rev / spend) * 100) / 100 : 0;
+    const cpa = purchases > 0 ? Math.round((spend / purchases) * 100) / 100 : 0;
+    const aov = purchases > 0 ? Math.round((rev / purchases) * 100) / 100 : 0;
+    const purLpv = lpv > 0 ? Math.round((purchases / lpv) * 10000) / 100 : 0;
+    const costLpv = lpv > 0 ? Math.round((spend / lpv) * 100) / 100 : 0;
+    const atcPct = lpv > 0 ? Math.round((atc / lpv) * 10000) / 100 : 0;
+    const icPct = lpv > 0 ? Math.round((ic / lpv) * 10000) / 100 : 0;
+    const ctr = impr > 0 ? Math.round((clicks / impr) * 10000) / 100 : 0;
+    const cpc = clicks > 0 ? Math.round((spend / clicks) * 100) / 100 : 0;
+
+    return {
+      week_period: g.week_period,
+      nomenclature_value: g.nomenclature_value,
+      dimension_value: g.dimension_value,
+      spend: spend,
+      purchases_conversion_value: rev,
+      conversion_value: rev,
+      revenue: rev,
+      purchases: purchases,
+      purchase_roas: roas,
+      roas: roas,
+      cost_per_purchase: cpa,
+      cpa: cpa,
+      avg_purchase_conversion_value: aov,
+      landing_page_views: lpv,
+      purchase_rate_per_lpv: purLpv,
+      cost_per_lpv: costLpv,
+      adds_to_cart: atc,
+      add_to_cart_pct: atcPct,
+      checkouts_initiated: ic,
+      checkout_initiated_pct: icPct,
+      impressions: impr,
+      link_clicks: clicks,
+      ctr: ctr,
+      cpc: cpc
+    };
+  }).sort((a, b) => b.week_period.localeCompare(a.week_period) || b.spend - a.spend);
 }
 
 // ----------------- Auto-Sync The Sunya on Startup if empty ----------------- //
