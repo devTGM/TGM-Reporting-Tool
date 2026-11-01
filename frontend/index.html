@@ -48,70 +48,78 @@
 
         <!-- Client Switcher & Sync Button -->
         <div class="header-controls">
-          <div class="status-pill">
-            <span class="pulse-radar"></span>
-            <span>5 Networks Live</span>
-          </div>
+          <!-- Group 1: Filter Selectors (Client, Account, Currency) -->
+          <div class="header-ctrl-group header-group-filters">
+            <div class="client-select-wrap">
+              <div class="client-avatar-dot">AG</div>
+              <label for="global-client-select">Client:</label>
+              <select id="global-client-select" class="select-client">
+                <option value="">All Agency Clients</option>
+              </select>
+            </div>
 
-          <div class="client-select-wrap">
-            <div class="client-avatar-dot">AG</div>
-            <label for="global-client-select">Client:</label>
-            <select id="global-client-select" class="select-client">
-              <option value="">All Agency Clients</option>
-            </select>
-          </div>
+            <!-- Multi-Account / Consolidated Selector -->
+            <div class="client-select-wrap" id="ad-account-select-wrap" style="display: none; border-color: rgba(129, 140, 248, 0.35);">
+              <svg width="14" height="14" fill="none" stroke="var(--accent-indigo)" stroke-width="2.2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              <label for="global-account-select">Account:</label>
+              <select id="global-account-select" class="select-client" style="max-width: 175px; font-weight: 700; color: #a5b4fc;">
+                <option value="all">🌟 Consolidated (All Accounts)</option>
+              </select>
+            </div>
 
-          <!-- Multi-Account / Consolidated Selector -->
-          <div class="client-select-wrap" id="ad-account-select-wrap" style="display: none; border-color: rgba(129, 140, 248, 0.35);">
-            <svg width="14" height="14" fill="none" stroke="var(--accent-indigo)" stroke-width="2.2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-            <label for="global-account-select">Account:</label>
-            <select id="global-account-select" class="select-client" style="max-width: 210px; font-weight: 700; color: #a5b4fc;">
-              <option value="all">🌟 Consolidated (All Accounts)</option>
-            </select>
-          </div>
-
-          <div class="client-select-wrap" style="padding: 0.25rem 0.6rem; min-width: auto; gap: 0.35rem;">
-            <span style="color: var(--accent-emerald); font-weight: 800; font-size: 0.88rem;">₹</span>
-            <label for="global-currency-select" style="font-size: 0.72rem; text-transform: uppercase;">Curr:</label>
-            <select id="global-currency-select" class="select-client" style="border: none; background: transparent; padding: 0.15rem 0; font-weight: 700; color: var(--text-primary); cursor: pointer;">
-              <option value="INR" selected>INR (₹)</option>
-              <option value="USD">USD ($)</option>
-              <option value="EUR">EUR (€)</option>
-              <option value="GBP">GBP (£)</option>
-              <option value="AED">AED (د.إ)</option>
-            </select>
-          </div>
-
-          <!-- Set Targets Button -->
-          <button class="btn btn-secondary btn-sm" id="btn-open-targets-modal" title="Set KPI performance targets for this account" style="padding: 0.35rem 0.65rem; display: flex; align-items: center; gap: 0.35rem; border-color: rgba(255, 205, 87, 0.35); color: #ffcd57;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-            <span>Set Targets</span>
-          </button>
-
-          <!-- Theme Toggle (System / Light / Dark) -->
-          <button class="btn btn-secondary btn-sm" id="btn-theme-toggle" title="Switch Theme (System, Light, Dark)" style="padding: 0.35rem 0.65rem; display: flex; align-items: center; gap: 0.38rem;">
-            <span id="theme-toggle-icon" style="font-size: 0.88rem; line-height: 1;">🌓</span>
-            <span id="theme-toggle-label" style="font-size: 0.74rem; font-weight: 600;">System</span>
-          </button>
-
-          <button class="btn btn-primary" id="btn-open-sync-modal">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Sync Data Now
-          </button>
-
-          <!-- User Profile & Sign Out -->
-          <div id="user-profile-badge" class="client-select-wrap" style="padding: 0.25rem 0.65rem; min-width: auto; gap: 0.45rem; cursor: default;">
-            <div id="user-role-avatar" class="client-avatar-dot" style="background: linear-gradient(135deg, #da0d0a, #ff1a44); font-size: 0.7rem; font-weight: 800;">AD</div>
-            <div style="display: flex; flex-direction: column;">
-              <span id="user-display-name" style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); line-height: 1.1;">Admin</span>
-              <span id="user-role-badge" style="font-size: 0.65rem; color: var(--accent-gold); font-weight: 700; text-transform: uppercase;">Super Admin</span>
+            <div class="client-select-wrap curr-select-wrap">
+              <span style="color: var(--accent-emerald); font-weight: 800; font-size: 0.88rem;">₹</span>
+              <label for="global-currency-select">Curr:</label>
+              <select id="global-currency-select" class="select-client">
+                <option value="INR" selected>INR (₹)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="AED">AED (د.إ)</option>
+              </select>
             </div>
           </div>
 
-          <button class="btn btn-secondary btn-sm" id="btn-header-logout" onclick="handleLogout()" title="Sign out of TGM Reporting Studio" style="padding: 0.35rem 0.65rem; display: flex; align-items: center; gap: 0.35rem;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            <span>Logout</span>
-          </button>
+          <!-- Group 2: Action Buttons & Networks Live Status -->
+          <div class="header-ctrl-group header-group-actions">
+            <div class="status-pill">
+              <span class="pulse-radar"></span>
+              <span class="status-pill-text">5 Networks Live</span>
+            </div>
+
+            <!-- Set Targets Button -->
+            <button class="btn btn-secondary btn-sm btn-targets" id="btn-open-targets-modal" title="Set KPI performance targets for this account">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              <span>Targets</span>
+            </button>
+
+            <!-- Theme Toggle (System / Light / Dark) -->
+            <button class="btn btn-secondary btn-sm btn-theme" id="btn-theme-toggle" title="Switch Theme (System, Light, Dark)">
+              <span id="theme-toggle-icon">🌓</span>
+              <span id="theme-toggle-label">System</span>
+            </button>
+
+            <button class="btn btn-primary btn-sm btn-header-sync" id="btn-open-sync-modal">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              <span>Sync Data</span>
+            </button>
+          </div>
+
+          <!-- Group 3: User Profile & Logout -->
+          <div class="header-ctrl-group header-group-user">
+            <div id="user-profile-badge" class="client-select-wrap user-profile-box" title="Current session user">
+              <div id="user-role-avatar" class="client-avatar-dot">AD</div>
+              <div class="user-profile-text">
+                <span id="user-display-name">Admin</span>
+                <span id="user-role-badge">Super Admin</span>
+              </div>
+            </div>
+
+            <button class="btn btn-secondary btn-sm btn-logout" id="btn-header-logout" onclick="handleLogout()" title="Sign out of TGM Reporting Studio">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
       </div>
 
