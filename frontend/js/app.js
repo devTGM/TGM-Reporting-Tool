@@ -242,12 +242,7 @@ function renderClientsTab() {
   grid.innerHTML = '';
   clientsList.forEach(c => {
     const card = document.createElement('div');
-    card.className = 'card';
-    card.style.display = 'flex';
-    card.style.flexDirection = 'column';
-    card.style.justifyContent = 'space-between';
-    card.style.border = '1px solid rgba(255, 255, 255, 0.08)';
-    card.style.background = 'linear-gradient(135deg, rgba(20, 10, 40, 0.6) 0%, rgba(10, 4, 22, 0.95) 100%)';
+    card.className = 'card client-card';
 
     const roas = c.total_spend > 0 ? (c.total_revenue / c.total_spend).toFixed(2) : '0.00';
     const roasBadge = parseFloat(roas) >= 2.0 ? 'tier-high' : (parseFloat(roas) >= 1.0 ? 'tier-mid' : 'tier-low');
@@ -266,11 +261,11 @@ function renderClientsTab() {
               </a>
             </div>
             <div style="color: var(--text-muted); font-size: 0.68rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-              GID: <strong style="color: #cbd5e1;">${c.google_sheet_gid || '0'}</strong> &bull; ${c.last_sheet_synced_at ? `Synced ${formatRelativeTime(c.last_sheet_synced_at)}` : 'Ready to sync'}
+              GID: <strong style="color: var(--text-primary);">${c.google_sheet_gid || '0'}</strong> &bull; ${c.last_sheet_synced_at ? `Synced ${formatRelativeTime(c.last_sheet_synced_at)}` : 'Ready to sync'}
             </div>
             ${c.secondary_sheet_url ? `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px solid rgba(255,255,255,0.06);">
-              <span style="color: #38bdf8; font-size: 0.68rem; font-weight: 600;">📁 Acc 2: ${c.ad_account_2_name || 'Ad Account 2'}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px solid var(--border-color);">
+              <span style="color: var(--accent-cyan); font-size: 0.68rem; font-weight: 600;">📁 Acc 2: ${c.ad_account_2_name || 'Ad Account 2'}</span>
               <a href="${c.secondary_sheet_url}" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.68rem;">Open &rarr;</a>
             </div>
             ` : ''}
@@ -283,10 +278,10 @@ function renderClientsTab() {
           </div>
         `)
       : `
-        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 0.5rem 0.65rem; margin-bottom: 0.85rem; font-size: 0.74rem;">
+        <div style="background: var(--bg-table-hover); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem 0.65rem; margin-bottom: 0.85rem; font-size: 0.74rem;">
           <div style="color: var(--text-muted); font-size: 0.7rem; display: flex; align-items: center; justify-content: space-between;">
             <span>🔒 Data Source: Managed by Super Admin</span>
-            <span style="color: #cbd5e1;">${c.last_sheet_synced_at ? `Synced ${formatRelativeTime(c.last_sheet_synced_at)}` : 'Live'}</span>
+            <span style="color: var(--text-primary);">${c.last_sheet_synced_at ? `Synced ${formatRelativeTime(c.last_sheet_synced_at)}` : 'Live'}</span>
           </div>
         </div>
       `;
@@ -320,11 +315,11 @@ function renderClientsTab() {
           </div>
           <div style="margin-top: 0.25rem;">
             <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">ROAS</div>
-            <div style="font-size: 0.85rem; font-weight: 700; color: #FFCD57;">${roas}x</div>
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-gold);">${roas}x</div>
           </div>
           <div style="margin-top: 0.25rem;">
             <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">Ingested Rows</div>
-            <div style="font-size: 0.85rem; font-weight: 600; color: #cbd5e1;">${formatNumber(c.total_records)}</div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${formatNumber(c.total_records)}</div>
           </div>
         </div>
       </div>

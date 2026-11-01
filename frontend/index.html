@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TGM Reporting Studio - Cross-Channel Ad Reporting for Looker Studio</title>
-  <meta name="description" content="Automated cross-channel advertising data ingestion, cleaning, BigQuery warehousing, and Looker Studio reporting pipeline for marketing agencies.">
+  <meta name="description"
+    content="Automated cross-channel advertising data ingestion, cleaning, BigQuery warehousing, and Looker Studio reporting pipeline for marketing agencies.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
   <script>
-    (function() {
+    (function () {
       try {
         var t = localStorage.getItem('tgm_theme') || 'system';
         if (t === 'light') {
@@ -21,10 +25,11 @@
           var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
         }
-      } catch (e) {}
+      } catch (e) { }
     })();
   </script>
 </head>
+
 <body>
 
   <!-- App Header -->
@@ -127,31 +132,60 @@
       <div class="header-nav-row">
         <nav class="nav-tabs" role="tablist">
           <button class="nav-tab-btn active" data-tab="tab-dashboard" id="btn-tab-dashboard">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M3 3v18h18" />
+              <path d="M18 17V9" />
+              <path d="M13 17V5" />
+              <path d="M8 17v-3" />
+            </svg>
             Dashboard
           </button>
           <button class="nav-tab-btn" data-tab="tab-clients" id="btn-tab-clients">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
             Clients
           </button>
           <button class="nav-tab-btn" data-tab="tab-connectors" id="btn-tab-connectors">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
             Ad Connectors
           </button>
           <button class="nav-tab-btn" data-tab="tab-data" id="btn-tab-data">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <ellipse cx="12" cy="5" rx="9" ry="3" />
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+            </svg>
             Data Lake
           </button>
           <button class="nav-tab-btn" data-tab="tab-bigquery" id="btn-tab-bigquery">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
             BigQuery
           </button>
           <button class="nav-tab-btn" data-tab="tab-looker" id="btn-tab-looker">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18" />
+              <path d="M9 21V9" />
+            </svg>
             Looker Studio
           </button>
           <button class="nav-tab-btn" data-tab="tab-team" id="btn-tab-team" style="display: none;">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
             Team & Access
           </button>
         </nav>
@@ -177,7 +211,11 @@
           </div>
           <span class="card-badge" id="data-status-badge">Automated Cleaned Pipeline</span>
           <button class="btn btn-secondary btn-sm" id="btn-refresh-dashboard">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
             Refresh
           </button>
         </div>
@@ -186,11 +224,17 @@
       <!-- LUXURY DATE RANGE & SCOPE FILTER PANEL -->
       <div class="date-filter-panel card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          
+
           <!-- Presets -->
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span class="date-scope-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tgm-flame-light)" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tgm-flame-light)"
+                stroke-width="2.2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
               Date Scope:
             </span>
             <div class="preset-pills-wrap">
@@ -208,11 +252,15 @@
           <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <div class="custom-date-box">
               <span class="custom-date-label">Custom:</span>
-              <input type="date" id="filter-start-date" class="form-input date-picker-input" style="padding: 3px 8px; height: 30px; font-size: 0.78rem; width: 135px;">
+              <input type="date" id="filter-start-date" class="form-input date-picker-input"
+                style="padding: 3px 8px; height: 30px; font-size: 0.78rem; width: 135px;">
               <span class="custom-date-arrow">&rarr;</span>
-              <input type="date" id="filter-end-date" class="form-input date-picker-input" style="padding: 3px 8px; height: 30px; font-size: 0.78rem; width: 135px;">
-              <button class="btn btn-primary btn-sm" id="btn-apply-dates" style="height: 30px; padding: 0 12px; font-size: 0.75rem;">Apply</button>
-              <button class="btn btn-outline btn-sm" id="btn-reset-dates" style="height: 30px; padding: 0 10px; font-size: 0.75rem;" title="Reset to All Time">Reset</button>
+              <input type="date" id="filter-end-date" class="form-input date-picker-input"
+                style="padding: 3px 8px; height: 30px; font-size: 0.78rem; width: 135px;">
+              <button class="btn btn-primary btn-sm" id="btn-apply-dates"
+                style="height: 30px; padding: 0 12px; font-size: 0.75rem;">Apply</button>
+              <button class="btn btn-outline btn-sm" id="btn-reset-dates"
+                style="height: 30px; padding: 0 10px; font-size: 0.75rem;" title="Reset to All Time">Reset</button>
             </div>
 
             <div id="active-date-badge" class="active-date-badge">
@@ -238,19 +286,24 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">👁️ Total Impressions</span>
-                  <span class="metric-tooltip-desc">The total cumulative count of times your advertisements appeared on screen across platforms.</span>
+                  <span class="metric-tooltip-desc">The total cumulative count of times your advertisements appeared on
+                    screen across platforms.</span>
                   <span class="metric-tooltip-formula">Formula: Sum of impressions</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: #38bdf8;">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-impressions">0</div>
           <div class="kpi-sub">
             <span class="kpi-trend-badge" id="trend-kpi-impressions"></span>
-            <span class="kpi-badge-chip" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">Impressions</span>
+            <span class="kpi-badge-chip"
+              style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">Impressions</span>
           </div>
           <div class="kpi-target-indicator" id="target-kpi-impressions" style="display: none;"></div>
         </div>
@@ -264,19 +317,27 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">👥 Total Reach</span>
-                  <span class="metric-tooltip-desc">The estimated total number of unique individual persons who saw your ads at least once.</span>
+                  <span class="metric-tooltip-desc">The estimated total number of unique individual persons who saw your
+                    ads at least once.</span>
                   <span class="metric-tooltip-formula">Formula: Sum of unique user reach</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: #818cf8;">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-reach">0</div>
           <div class="kpi-sub" id="kpi-reach-sub">
             <span class="kpi-trend-badge" id="trend-kpi-reach"></span>
-            <span class="kpi-badge-chip" id="kpi-frequency-chip" style="background: rgba(129, 140, 248, 0.15); color: #818cf8; border-color: rgba(129, 140, 248, 0.3);">Freq: 1.00</span>
+            <span class="kpi-badge-chip" id="kpi-frequency-chip"
+              style="background: rgba(129, 140, 248, 0.15); color: #818cf8; border-color: rgba(129, 140, 248, 0.3);">Freq:
+              1.00</span>
           </div>
           <div class="kpi-target-indicator" id="target-kpi-reach" style="display: none;"></div>
         </div>
@@ -290,13 +351,17 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">💳 Amount Spent</span>
-                  <span class="metric-tooltip-desc">Total gross advertising budget expended across ad channels and campaigns.</span>
+                  <span class="metric-tooltip-desc">Total gross advertising budget expended across ad channels and
+                    campaigns.</span>
                   <span class="metric-tooltip-formula">Formula: Sum of ad spend</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: var(--tgm-flame-light);">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-spend">₹0.00</div>
@@ -316,19 +381,24 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">💰 Purchases Value (Revenue)</span>
-                  <span class="metric-tooltip-desc">Total tracked monetary value of website purchases generated directly from campaigns.</span>
+                  <span class="metric-tooltip-desc">Total tracked monetary value of website purchases generated directly
+                    from campaigns.</span>
                   <span class="metric-tooltip-formula">Formula: Sum of purchases conversion value</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: var(--accent-emerald-light);">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-revenue" style="color: #34d399;">₹0.00</div>
           <div class="kpi-sub positive" id="kpi-revenue-sub">
             <span class="kpi-trend-badge" id="trend-kpi-revenue"></span>
-            <span class="kpi-badge-chip" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">Conversion</span>
+            <span class="kpi-badge-chip"
+              style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">Conversion</span>
           </div>
           <div class="kpi-target-indicator" id="target-kpi-revenue" style="display: none;"></div>
         </div>
@@ -342,19 +412,25 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">⚡ Purchase ROAS</span>
-                  <span class="metric-tooltip-desc">Return on Ad Spend: Multiple of gross revenue delivered per currency unit spent.</span>
+                  <span class="metric-tooltip-desc">Return on Ad Spend: Multiple of gross revenue delivered per currency
+                    unit spent.</span>
                   <span class="metric-tooltip-formula">Formula: Purchases Value ÷ Amount Spent</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: var(--accent-gold-light);">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-blended-roas" style="color: #ffcd57;">0.00x</div>
           <div class="kpi-sub">
             <span class="kpi-trend-badge" id="trend-kpi-roas"></span>
-            <span class="kpi-badge-chip" id="kpi-roas-target-chip" style="background: rgba(255, 205, 87, 0.15); color: #ffcd57; border-color: rgba(255, 205, 87, 0.35);">Target: 3.5x</span>
+            <span class="kpi-badge-chip" id="kpi-roas-target-chip"
+              style="background: rgba(255, 205, 87, 0.15); color: #ffcd57; border-color: rgba(255, 205, 87, 0.35);">Target:
+              3.5x</span>
           </div>
           <div class="kpi-target-indicator" id="target-kpi-roas" style="display: none;"></div>
         </div>
@@ -368,13 +444,20 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">🎯 Cost per Purchase (CPA)</span>
-                  <span class="metric-tooltip-desc">Average ad spend required to acquire a single customer purchase order.</span>
+                  <span class="metric-tooltip-desc">Average ad spend required to acquire a single customer purchase
+                    order.</span>
                   <span class="metric-tooltip-formula">Formula: Amount Spent ÷ Total Purchases</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: var(--accent-violet-light);">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="m4.93 4.93 4.24 4.24" />
+                <path d="m14.83 9.17 4.24-4.24" />
+                <path d="m14.83 14.83 4.24 4.24" />
+                <path d="m9.17 14.83-4.24 4.24" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-cost-per-purchase">₹0.00</div>
@@ -394,13 +477,17 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">🛍️ Avg Purchase Value (AOV)</span>
-                  <span class="metric-tooltip-desc">Average gross revenue value per individual purchase transaction.</span>
+                  <span class="metric-tooltip-desc">Average gross revenue value per individual purchase
+                    transaction.</span>
                   <span class="metric-tooltip-formula">Formula: Purchases Value ÷ Total Purchases</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: #38bdf8;">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-avg-purchase-value">₹0.00</div>
@@ -413,8 +500,9 @@
       </div>
 
       <!-- Tier 2: Funnel & Conversion Rates (LPV, ATC, IC, Video) -->
-      <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 1.75rem;">
-        
+      <div class="kpi-grid"
+        style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 1.75rem;">
+
         <!-- Landing Page Views -->
         <div class="kpi-card" style="--card-accent: #38bdf8;">
           <div class="kpi-header">
@@ -424,13 +512,18 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">🔗 Landing Page Views (LPV)</span>
-                  <span class="metric-tooltip-desc">The number of times a user clicked an ad link and the web page successfully loaded.</span>
+                  <span class="metric-tooltip-desc">The number of times a user clicked an ad link and the web page
+                    successfully loaded.</span>
                   <span class="metric-tooltip-formula">Formula: Sum of landing page views</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: #38bdf8;">
-              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-lpv" style="font-size: 1.55rem;">0</div>
@@ -438,7 +531,9 @@
             <span class="kpi-trend-badge" id="trend-kpi-lpv"></span>
             <span>LPV Rate: 0%</span>
           </div>
-          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 77%;"></div></div>
+          <div class="kpi-progress-bar">
+            <div class="kpi-progress-fill" style="width: 77%;"></div>
+          </div>
         </div>
 
         <!-- Cost per LPV -->
@@ -450,7 +545,8 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">💸 Cost per LPV</span>
-                  <span class="metric-tooltip-desc">Average ad spend incurred for each successfully loaded landing page visit.</span>
+                  <span class="metric-tooltip-desc">Average ad spend incurred for each successfully loaded landing page
+                    visit.</span>
                   <span class="metric-tooltip-formula">Formula: Amount Spent ÷ Landing Page Views</span>
                 </span>
               </span>
@@ -462,7 +558,9 @@
             <span class="kpi-trend-badge" id="trend-kpi-cost-lpv"></span>
             <span>Spend &divide; LPV</span>
           </div>
-          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 45%; background: #38bdf8;"></div></div>
+          <div class="kpi-progress-bar">
+            <div class="kpi-progress-fill" style="width: 45%; background: #38bdf8;"></div>
+          </div>
         </div>
 
         <!-- Purchase Rate / LPV -->
@@ -474,7 +572,8 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">📈 Purchase Rate / LPV</span>
-                  <span class="metric-tooltip-desc">Conversion rate from landing page arrival to completed purchase.</span>
+                  <span class="metric-tooltip-desc">Conversion rate from landing page arrival to completed
+                    purchase.</span>
                   <span class="metric-tooltip-formula">Formula: (Total Purchases ÷ LPV) × 100%</span>
                 </span>
               </span>
@@ -486,7 +585,9 @@
             <span class="kpi-trend-badge" id="trend-kpi-purch-rate"></span>
             <span>(Purchases &divide; LPV) &times; 100</span>
           </div>
-          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 35%; background: #a855f7;"></div></div>
+          <div class="kpi-progress-bar">
+            <div class="kpi-progress-fill" style="width: 35%; background: #a855f7;"></div>
+          </div>
         </div>
 
         <!-- Add to Cart % -->
@@ -498,18 +599,25 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">🛒 Add to Cart %</span>
-                  <span class="metric-tooltip-desc">Proportion of landing page visitors who added one or more items to their cart.</span>
+                  <span class="metric-tooltip-desc">Proportion of landing page visitors who added one or more items to
+                    their cart.</span>
                   <span class="metric-tooltip-formula">Formula: (Adds to Cart ÷ LPV) × 100%</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: #fbbf24;">
-              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-atc-pct" style="font-size: 1.55rem;">0.00%</div>
           <div class="kpi-sub" id="kpi-cost-per-atc">Cost/ATC: ₹0.00</div>
-          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 50%; background: #f59e0b;"></div></div>
+          <div class="kpi-progress-bar">
+            <div class="kpi-progress-fill" style="width: 50%; background: #f59e0b;"></div>
+          </div>
         </div>
 
         <!-- Checkout Initiated % -->
@@ -521,18 +629,24 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">💳 Checkout Initiated %</span>
-                  <span class="metric-tooltip-desc">Proportion of landing page visitors who proceeded to the payment checkout phase.</span>
+                  <span class="metric-tooltip-desc">Proportion of landing page visitors who proceeded to the payment
+                    checkout phase.</span>
                   <span class="metric-tooltip-formula">Formula: (Checkouts Initiated ÷ LPV) × 100%</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: #f472b6;">
-              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-checkout-pct" style="font-size: 1.55rem;">0.00%</div>
           <div class="kpi-sub" id="kpi-cost-per-checkout">Cost/IC: ₹0.00</div>
-          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 25%; background: #ec4899;"></div></div>
+          <div class="kpi-progress-bar">
+            <div class="kpi-progress-fill" style="width: 25%; background: #ec4899;"></div>
+          </div>
         </div>
 
         <!-- 3s Video Play Rate -->
@@ -544,18 +658,23 @@
                 <span class="metric-info-icon">i</span>
                 <span class="metric-tooltip">
                   <span class="metric-tooltip-title">🎬 3s Video Play Rate (Thumbstop)</span>
-                  <span class="metric-tooltip-desc">Creative hook rate: Percentage of impressions where the viewer watched at least 3 seconds.</span>
+                  <span class="metric-tooltip-desc">Creative hook rate: Percentage of impressions where the viewer
+                    watched at least 3 seconds.</span>
                   <span class="metric-tooltip-formula">Formula: (3s Video Plays ÷ Impressions) × 100%</span>
                 </span>
               </span>
             </span>
             <div class="kpi-icon-wrap" style="color: #34d399;">
-              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-video-3s-rate" style="font-size: 1.55rem;">0.00%</div>
           <div class="kpi-sub" id="kpi-cost-per-3s">Thumbstop &bull; Cost: ₹0.00</div>
-          <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 60%; background: #10b981;"></div></div>
+          <div class="kpi-progress-bar">
+            <div class="kpi-progress-fill" style="width: 60%; background: #10b981;"></div>
+          </div>
         </div>
       </div>
 
@@ -564,11 +683,15 @@
         <div class="card">
           <div class="card-header" style="flex-wrap: wrap; gap: 0.5rem;">
             <div class="card-title" id="daily-trend-chart-title">
-              <svg width="18" height="18" fill="none" stroke="var(--accent-indigo)" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <svg width="18" height="18" fill="none" stroke="var(--accent-indigo)" stroke-width="2"
+                viewBox="0 0 24 24">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
               Daily Performance Trend
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-              <label for="chart-metric-select" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Metric:</label>
+              <label for="chart-metric-select"
+                style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Metric:</label>
               <select id="chart-metric-select" class="chart-metric-select">
                 <option value="spend_vs_revenue" selected>Spend vs Revenue (Dual)</option>
                 <option value="spend">Ad Spend</option>
@@ -597,7 +720,10 @@
         <div class="card">
           <div class="card-header">
             <div class="card-title">
-              <svg width="18" height="18" fill="none" stroke="var(--accent-cyan)" stroke-width="2" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+              <svg width="18" height="18" fill="none" stroke="var(--accent-cyan)" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                <path d="M22 12A10 10 0 0 0 12 2v10z" />
+              </svg>
               Spend Share by Platform
             </div>
             <span class="card-badge">Network Share</span>
@@ -612,7 +738,11 @@
       <div class="table-card">
         <div class="card-header" style="padding: 1.25rem 1.25rem 0.5rem 1.25rem;">
           <div class="card-title">
-            <svg width="18" height="18" fill="none" stroke="var(--accent-emerald)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            <svg width="18" height="18" fill="none" stroke="var(--accent-emerald)" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 20V10" />
+              <path d="M18 20V4" />
+              <path d="M6 20v-4" />
+            </svg>
             Cross-Channel Performance Matrix
           </div>
           <span class="card-badge">Multi-Platform Breakdown</span>
@@ -624,44 +754,73 @@
                 <th>Ad Platform</th>
                 <th>
                   Ad Spend
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">💳 Ad Spend</span><span class="metric-tooltip-desc">Total gross advertising cost invested in this channel.</span><span class="metric-tooltip-formula">Formula: Sum of spend</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">💳 Ad Spend</span><span
+                        class="metric-tooltip-desc">Total gross advertising cost invested in this channel.</span><span
+                        class="metric-tooltip-formula">Formula: Sum of spend</span></span></span>
                 </th>
                 <th>
                   Impressions
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">👁️ Impressions</span><span class="metric-tooltip-desc">Times ads were shown on screen to users.</span><span class="metric-tooltip-formula">Formula: Sum of views</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">👁️ Impressions</span><span
+                        class="metric-tooltip-desc">Times ads were shown on screen to users.</span><span
+                        class="metric-tooltip-formula">Formula: Sum of views</span></span></span>
                 </th>
                 <th>
                   Clicks
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">🖱️ Link Clicks</span><span class="metric-tooltip-desc">Total clicks on ad links heading to landing page.</span><span class="metric-tooltip-formula">Formula: Sum of link clicks</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">🖱️ Link Clicks</span><span
+                        class="metric-tooltip-desc">Total clicks on ad links heading to landing page.</span><span
+                        class="metric-tooltip-formula">Formula: Sum of link clicks</span></span></span>
                 </th>
                 <th>
                   CTR
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">🎯 Click-Through Rate</span><span class="metric-tooltip-desc">Percentage of impressions that resulted in a click.</span><span class="metric-tooltip-formula">Formula: (Link Clicks ÷ Impressions) × 100%</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">🎯 Click-Through Rate</span><span
+                        class="metric-tooltip-desc">Percentage of impressions that resulted in a click.</span><span
+                        class="metric-tooltip-formula">Formula: (Link Clicks ÷ Impressions) × 100%</span></span></span>
                 </th>
                 <th>
                   Avg CPC
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">💵 Cost Per Click</span><span class="metric-tooltip-desc">Average cost paid per outbound link click.</span><span class="metric-tooltip-formula">Formula: Spend ÷ Link Clicks</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">💵 Cost Per Click</span><span
+                        class="metric-tooltip-desc">Average cost paid per outbound link click.</span><span
+                        class="metric-tooltip-formula">Formula: Spend ÷ Link Clicks</span></span></span>
                 </th>
                 <th>
                   Conversions
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">📦 Conversions</span><span class="metric-tooltip-desc">Total number of completed purchase orders.</span><span class="metric-tooltip-formula">Formula: Count of tracked purchases</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">📦 Conversions</span><span
+                        class="metric-tooltip-desc">Total number of completed purchase orders.</span><span
+                        class="metric-tooltip-formula">Formula: Count of tracked purchases</span></span></span>
                 </th>
                 <th>
                   Revenue
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">💰 Attributed Revenue</span><span class="metric-tooltip-desc">Gross sales value delivered by purchases.</span><span class="metric-tooltip-formula">Formula: Sum of purchases conversion value</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">💰 Attributed Revenue</span><span
+                        class="metric-tooltip-desc">Gross sales value delivered by purchases.</span><span
+                        class="metric-tooltip-formula">Formula: Sum of purchases conversion value</span></span></span>
                 </th>
                 <th>
                   ROAS
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">⚡ Return On Ad Spend</span><span class="metric-tooltip-desc">Gross revenue returned per currency unit spent.</span><span class="metric-tooltip-formula">Formula: Revenue ÷ Ad Spend</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">⚡ Return On Ad Spend</span><span
+                        class="metric-tooltip-desc">Gross revenue returned per currency unit spent.</span><span
+                        class="metric-tooltip-formula">Formula: Revenue ÷ Ad Spend</span></span></span>
                 </th>
                 <th>
                   CPA
-                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">🎯 Cost per Acquisition</span><span class="metric-tooltip-desc">Average ad cost to acquire a single purchase.</span><span class="metric-tooltip-formula">Formula: Spend ÷ Purchases</span></span></span>
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span
+                      class="metric-tooltip"><span class="metric-tooltip-title">🎯 Cost per Acquisition</span><span
+                        class="metric-tooltip-desc">Average ad cost to acquire a single purchase.</span><span
+                        class="metric-tooltip-formula">Formula: Spend ÷ Purchases</span></span></span>
                 </th>
               </tr>
             </thead>
             <tbody id="platform-matrix-body">
-              <tr><td colspan="10" style="text-align: center; padding: 2rem;">Loading platform matrix...</td></tr>
+              <tr>
+                <td colspan="10" style="text-align: center; padding: 2rem;">Loading platform matrix...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -672,14 +831,20 @@
         <div class="card-header" style="padding: 1.25rem 1.25rem 0.5rem 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
           <div>
             <div class="card-title">
-              <svg width="18" height="18" fill="none" stroke="var(--tgm-crimson)" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              <svg width="18" height="18" fill="none" stroke="var(--tgm-crimson)" stroke-width="2" viewBox="0 0 24 24">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
               Weekly Performance on Basis of Nomenclature
             </div>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
               Cross-channel creative, audience, and campaign taxonomy aggregation
             </p>
           </div>
-          <span class="card-badge" style="background: rgba(218, 13, 10, 0.15); color: var(--tgm-flame-light); border: 1px solid rgba(218, 13, 10, 0.35);">Weekly Grouping</span>
+          <span class="card-badge"
+            style="background: rgba(218, 13, 10, 0.15); color: var(--tgm-flame-light); border: 1px solid rgba(218, 13, 10, 0.35);">Weekly
+            Grouping</span>
         </div>
 
         <!-- Nomenclature Dimension Selector Pills -->
@@ -713,8 +878,12 @@
         <!-- Table Quick Search & Actions -->
         <div class="table-search-row">
           <div class="search-input-wrap">
-            <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="nomen-search-input" placeholder="Filter nomenclature records (e.g. Polo, Black Friday, Review)...">
+            <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" id="nomen-search-input"
+              placeholder="Filter nomenclature records (e.g. Polo, Black Friday, Review)...">
           </div>
           <div style="font-size: 0.76rem; color: var(--text-muted); font-weight: 500;">
             Showing weekly aggregated taxonomy metrics
@@ -740,7 +909,9 @@
               </tr>
             </thead>
             <tbody id="nomen-table-body">
-              <tr><td colspan="12" style="text-align: center; padding: 2rem;">Loading nomenclature analysis...</td></tr>
+              <tr>
+                <td colspan="12" style="text-align: center; padding: 2rem;">Loading nomenclature analysis...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -755,7 +926,10 @@
           <p>Manage agency clients, currencies, and connected advertising accounts</p>
         </div>
         <button class="btn btn-primary" id="btn-add-client-modal">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
           Add New Client
         </button>
       </div>
@@ -775,214 +949,251 @@
         <div class="actions-row">
           <span class="card-badge">Direct Graph & REST APIs</span>
         </div>
-      <!-- OPTION 1: GOOGLE SHEETS AUTO-SYNC HUB -->
-      <div class="card" style="margin-bottom: 2rem; border: 1px solid rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 6, 32, 0.95) 100%);">
-        <div class="card-header" style="border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
-          <div style="display: flex; align-items: center; gap: 0.85rem;">
-            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; color: #10B981; font-weight: 800; font-size: 1.25rem;">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            </div>
-            <div>
-              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Option 1: Google Sheets Automated Hub</h3>
-                <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px;">RECOMMENDED FOR AGENCIES</span>
+        <!-- OPTION 1: GOOGLE SHEETS AUTO-SYNC HUB -->
+        <div class="card"
+          style="margin-bottom: 2rem; border: 1px solid rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 6, 32, 0.95) 100%);">
+          <div class="card-header" style="border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div
+                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; color: #10B981; font-weight: 800; font-size: 1.25rem;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
               </div>
-              <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">
-                Auto-syncs raw ad rows from Coupler.io / Coefficient / Supermetrics into your sheet, then cleans & computes 17 metrics directly.
-              </p>
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                  <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Option 1: Google Sheets
+                    Automated Hub</h3>
+                  <span class="badge"
+                    style="background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px;">RECOMMENDED
+                    FOR AGENCIES</span>
+                </div>
+                <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">
+                  Auto-syncs raw ad rows from Coupler.io / Coefficient / Supermetrics into your sheet, then cleans &
+                  computes 17 metrics directly.
+                </p>
+              </div>
+            </div>
+            <a href="https://docs.google.com/spreadsheets/d/1yulDW_Xm-pmawzXSqBtRmg1WojiP74FpuyN1T6sp-yQ/edit?usp=sharing"
+              target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+              Open Requirement Sheet &rarr;
+            </a>
+          </div>
+          <div style="padding: 1.25rem;">
+            <div style="display: grid; grid-template-columns: 1.2fr 2fr 0.8fr auto; gap: 1rem; align-items: flex-end;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label
+                  style="font-size: 0.75rem; text-transform: uppercase; color: var(--accent-emerald-light); font-weight: 700;">1.
+                  Select Agency Client</label>
+                <select class="form-select" id="sheets-sync-client" onchange="onSheetsSyncClientChanged()">
+                  <!-- Dynamically populated -->
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label
+                  style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">2.
+                  Client Dedicated Sheet URL or ID</label>
+                <input type="text" class="form-input" id="sheets-sync-url"
+                  placeholder="https://docs.google.com/spreadsheets/d/...">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label
+                  style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">3.
+                  Tab GID</label>
+                <input type="text" class="form-input" id="sheets-sync-gid" placeholder="0" value="0">
+              </div>
+              <div>
+                <button class="btn btn-primary" id="btn-sync-google-sheet" onclick="triggerGoogleSheetSync()"
+                  style="background: linear-gradient(135deg, #10B981, #059669); border-color: #10B981; height: 38px; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path d="M21 2v6h-6" />
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                    <path d="M3 22v-6h6" />
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                  </svg>
+                  Sync Sheet for Client
+                </button>
+              </div>
+            </div>
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-dim); flex-wrap: wrap; gap: 0.5rem;">
+              <div id="sheets-sync-client-status" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>Select a client above to load and manage their dedicated Google Sheet.</span>
+              </div>
+              <label
+                style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-muted);">
+                <input type="checkbox" id="sheets-sync-replace" checked>
+                <span>Replace previous sheet records for this client (Prevents overlapping)</span>
+              </label>
+            </div>
+            <div id="sheets-sync-result-card"
+              style="display: none; margin-top: 1rem; padding: 0.85rem 1rem; border-radius: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.85rem; color: #e2e8f0;">
             </div>
           </div>
-          <a href="https://docs.google.com/spreadsheets/d/1yulDW_Xm-pmawzXSqBtRmg1WojiP74FpuyN1T6sp-yQ/edit?usp=sharing" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
-            Open Requirement Sheet &rarr;
-          </a>
         </div>
-        <div style="padding: 1.25rem;">
-          <div style="display: grid; grid-template-columns: 1.2fr 2fr 0.8fr auto; gap: 1rem; align-items: flex-end;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--accent-emerald-light); font-weight: 700;">1. Select Agency Client</label>
-              <select class="form-select" id="sheets-sync-client" onchange="onSheetsSyncClientChanged()">
-                <!-- Dynamically populated -->
-              </select>
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">2. Client Dedicated Sheet URL or ID</label>
-              <input type="text" class="form-input" id="sheets-sync-url" placeholder="https://docs.google.com/spreadsheets/d/...">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">3. Tab GID</label>
-              <input type="text" class="form-input" id="sheets-sync-gid" placeholder="0" value="0">
+
+        <div class="connectors-grid">
+          <!-- META ADS -->
+          <div class="connector-card">
+            <div>
+              <div class="connector-card-top">
+                <div class="connector-brand">
+                  <div class="connector-brand-icon" style="background: rgba(24, 119, 242, 0.2); color: #1877f2;">M</div>
+                  <div>
+                    <div class="connector-brand-title">Meta Ads</div>
+                    <div class="connector-brand-desc">Facebook & Instagram Insights API</div>
+                  </div>
+                </div>
+                <span class="status-dot active" title="Connector Ready"></span>
+              </div>
+              <div class="form-group">
+                <label>Ad Account ID (act_XXXXXXXXX)</label>
+                <input type="text" class="form-input" id="meta-account-id" placeholder="act_1234567890">
+              </div>
+              <div class="form-group">
+                <label>System / User Access Token</label>
+                <input type="password" class="form-input" id="meta-access-token" placeholder="EAA...">
+              </div>
             </div>
             <div>
-              <button class="btn btn-primary" id="btn-sync-google-sheet" onclick="triggerGoogleSheetSync()" style="background: linear-gradient(135deg, #10B981, #059669); border-color: #10B981; height: 38px; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
-                Sync Sheet for Client
+              <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;"
+                onclick="testConnector('meta')">
+                Test Meta Connection
               </button>
             </div>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-dim); flex-wrap: wrap; gap: 0.5rem;">
-            <div id="sheets-sync-client-status" style="display: flex; align-items: center; gap: 0.5rem;">
-              <span>Select a client above to load and manage their dedicated Google Sheet.</span>
-            </div>
-            <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-muted);">
-              <input type="checkbox" id="sheets-sync-replace" checked>
-              <span>Replace previous sheet records for this client (Prevents overlapping)</span>
-            </label>
-          </div>
-          <div id="sheets-sync-result-card" style="display: none; margin-top: 1rem; padding: 0.85rem 1rem; border-radius: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.85rem; color: #e2e8f0;">
-          </div>
-        </div>
-      </div>
 
-      <div class="connectors-grid">
-        <!-- META ADS -->
-        <div class="connector-card">
-          <div>
-            <div class="connector-card-top">
-              <div class="connector-brand">
-                <div class="connector-brand-icon" style="background: rgba(24, 119, 242, 0.2); color: #1877f2;">M</div>
-                <div>
-                  <div class="connector-brand-title">Meta Ads</div>
-                  <div class="connector-brand-desc">Facebook & Instagram Insights API</div>
+          <!-- GOOGLE ADS -->
+          <div class="connector-card">
+            <div>
+              <div class="connector-card-top">
+                <div class="connector-brand">
+                  <div class="connector-brand-icon" style="background: rgba(66, 133, 244, 0.2); color: #4285f4;">G</div>
+                  <div>
+                    <div class="connector-brand-title">Google Ads</div>
+                    <div class="connector-brand-desc">Search, Performance Max, YouTube</div>
+                  </div>
                 </div>
+                <span class="status-dot active" title="Connector Ready"></span>
               </div>
-              <span class="status-dot active" title="Connector Ready"></span>
+              <div class="form-group">
+                <label>Customer ID (XXX-XXX-XXXX)</label>
+                <input type="text" class="form-input" id="google-customer-id" placeholder="123-456-7890">
+              </div>
+              <div class="form-group">
+                <label>Developer Token</label>
+                <input type="password" class="form-input" id="google-dev-token" placeholder="Dev Token">
+              </div>
+              <div class="form-group">
+                <label>OAuth Refresh Token</label>
+                <input type="password" class="form-input" id="google-refresh-token" placeholder="1//04...">
+              </div>
             </div>
-            <div class="form-group">
-              <label>Ad Account ID (act_XXXXXXXXX)</label>
-              <input type="text" class="form-input" id="meta-account-id" placeholder="act_1234567890">
-            </div>
-            <div class="form-group">
-              <label>System / User Access Token</label>
-              <input type="password" class="form-input" id="meta-access-token" placeholder="EAA...">
+            <div>
+              <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;"
+                onclick="testConnector('google')">
+                Test Google Connection
+              </button>
             </div>
           </div>
-          <div>
-            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('meta')">
-              Test Meta Connection
-            </button>
-          </div>
-        </div>
 
-        <!-- GOOGLE ADS -->
-        <div class="connector-card">
-          <div>
-            <div class="connector-card-top">
-              <div class="connector-brand">
-                <div class="connector-brand-icon" style="background: rgba(66, 133, 244, 0.2); color: #4285f4;">G</div>
-                <div>
-                  <div class="connector-brand-title">Google Ads</div>
-                  <div class="connector-brand-desc">Search, Performance Max, YouTube</div>
+          <!-- LINKEDIN ADS -->
+          <div class="connector-card">
+            <div>
+              <div class="connector-card-top">
+                <div class="connector-brand">
+                  <div class="connector-brand-icon" style="background: rgba(10, 102, 194, 0.2); color: #0a66c2;">in
+                  </div>
+                  <div>
+                    <div class="connector-brand-title">LinkedIn Marketing</div>
+                    <div class="connector-brand-desc">Sponsored Content & B2B Lead Gen</div>
+                  </div>
                 </div>
+                <span class="status-dot active" title="Connector Ready"></span>
               </div>
-              <span class="status-dot active" title="Connector Ready"></span>
+              <div class="form-group">
+                <label>Sponsored Account ID (or URN)</label>
+                <input type="text" class="form-input" id="linkedin-account-id" placeholder="508934211">
+              </div>
+              <div class="form-group">
+                <label>OAuth 2.0 Bearer Token</label>
+                <input type="password" class="form-input" id="linkedin-access-token" placeholder="AQV...">
+              </div>
             </div>
-            <div class="form-group">
-              <label>Customer ID (XXX-XXX-XXXX)</label>
-              <input type="text" class="form-input" id="google-customer-id" placeholder="123-456-7890">
-            </div>
-            <div class="form-group">
-              <label>Developer Token</label>
-              <input type="password" class="form-input" id="google-dev-token" placeholder="Dev Token">
-            </div>
-            <div class="form-group">
-              <label>OAuth Refresh Token</label>
-              <input type="password" class="form-input" id="google-refresh-token" placeholder="1//04...">
+            <div>
+              <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;"
+                onclick="testConnector('linkedin')">
+                Test LinkedIn Connection
+              </button>
             </div>
           </div>
-          <div>
-            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('google')">
-              Test Google Connection
-            </button>
-          </div>
-        </div>
 
-        <!-- LINKEDIN ADS -->
-        <div class="connector-card">
-          <div>
-            <div class="connector-card-top">
-              <div class="connector-brand">
-                <div class="connector-brand-icon" style="background: rgba(10, 102, 194, 0.2); color: #0a66c2;">in</div>
-                <div>
-                  <div class="connector-brand-title">LinkedIn Marketing</div>
-                  <div class="connector-brand-desc">Sponsored Content & B2B Lead Gen</div>
+          <!-- TIKTOK ADS -->
+          <div class="connector-card">
+            <div>
+              <div class="connector-card-top">
+                <div class="connector-brand">
+                  <div class="connector-brand-icon" style="background: rgba(254, 44, 85, 0.2); color: #fe2c55;">&#9835;
+                  </div>
+                  <div>
+                    <div class="connector-brand-title">TikTok Ads</div>
+                    <div class="connector-brand-desc">TikTok Business Marketing API</div>
+                  </div>
                 </div>
+                <span class="status-dot active" title="Connector Ready"></span>
               </div>
-              <span class="status-dot active" title="Connector Ready"></span>
+              <div class="form-group">
+                <label>Advertiser ID</label>
+                <input type="text" class="form-input" id="tiktok-advertiser-id" placeholder="7091234567890">
+              </div>
+              <div class="form-group">
+                <label>Business Access Token</label>
+                <input type="password" class="form-input" id="tiktok-access-token" placeholder="act.XXXXXXXX">
+              </div>
             </div>
-            <div class="form-group">
-              <label>Sponsored Account ID (or URN)</label>
-              <input type="text" class="form-input" id="linkedin-account-id" placeholder="508934211">
-            </div>
-            <div class="form-group">
-              <label>OAuth 2.0 Bearer Token</label>
-              <input type="password" class="form-input" id="linkedin-access-token" placeholder="AQV...">
+            <div>
+              <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;"
+                onclick="testConnector('tiktok')">
+                Test TikTok Connection
+              </button>
             </div>
           </div>
-          <div>
-            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('linkedin')">
-              Test LinkedIn Connection
-            </button>
-          </div>
-        </div>
 
-        <!-- TIKTOK ADS -->
-        <div class="connector-card">
-          <div>
-            <div class="connector-card-top">
-              <div class="connector-brand">
-                <div class="connector-brand-icon" style="background: rgba(254, 44, 85, 0.2); color: #fe2c55;">&#9835;</div>
-                <div>
-                  <div class="connector-brand-title">TikTok Ads</div>
-                  <div class="connector-brand-desc">TikTok Business Marketing API</div>
+          <!-- SNAPCHAT ADS -->
+          <div class="connector-card">
+            <div>
+              <div class="connector-card-top">
+                <div class="connector-brand">
+                  <div class="connector-brand-icon" style="background: rgba(255, 252, 0, 0.2); color: #facc15;">
+                    &#128123;</div>
+                  <div>
+                    <div class="connector-brand-title">Snapchat Ads</div>
+                    <div class="connector-brand-desc">Snap Ads & AR Lens API</div>
+                  </div>
                 </div>
+                <span class="status-dot active" title="Connector Ready"></span>
               </div>
-              <span class="status-dot active" title="Connector Ready"></span>
+              <div class="form-group">
+                <label>Ad Account ID</label>
+                <input type="text" class="form-input" id="snapchat-account-id" placeholder="d8c3b...-...">
+              </div>
+              <div class="form-group">
+                <label>OAuth 2.0 Access Token</label>
+                <input type="password" class="form-input" id="snapchat-access-token" placeholder="snap_token_...">
+              </div>
             </div>
-            <div class="form-group">
-              <label>Advertiser ID</label>
-              <input type="text" class="form-input" id="tiktok-advertiser-id" placeholder="7091234567890">
+            <div>
+              <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;"
+                onclick="testConnector('snapchat')">
+                Test Snapchat Connection
+              </button>
             </div>
-            <div class="form-group">
-              <label>Business Access Token</label>
-              <input type="password" class="form-input" id="tiktok-access-token" placeholder="act.XXXXXXXX">
-            </div>
-          </div>
-          <div>
-            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('tiktok')">
-              Test TikTok Connection
-            </button>
           </div>
         </div>
-
-        <!-- SNAPCHAT ADS -->
-        <div class="connector-card">
-          <div>
-            <div class="connector-card-top">
-              <div class="connector-brand">
-                <div class="connector-brand-icon" style="background: rgba(255, 252, 0, 0.2); color: #facc15;">&#128123;</div>
-                <div>
-                  <div class="connector-brand-title">Snapchat Ads</div>
-                  <div class="connector-brand-desc">Snap Ads & AR Lens API</div>
-                </div>
-              </div>
-              <span class="status-dot active" title="Connector Ready"></span>
-            </div>
-            <div class="form-group">
-              <label>Ad Account ID</label>
-              <input type="text" class="form-input" id="snapchat-account-id" placeholder="d8c3b...-...">
-            </div>
-            <div class="form-group">
-              <label>OAuth 2.0 Access Token</label>
-              <input type="password" class="form-input" id="snapchat-access-token" placeholder="snap_token_...">
-            </div>
-          </div>
-          <div>
-            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 1rem;" onclick="testConnector('snapchat')">
-              Test Snapchat Connection
-            </button>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- TAB 4: DATA LAKE & CLEANING STAGING -->
@@ -993,12 +1204,20 @@
           <p>Inspect standardized cross-channel records, cleaning rules, and sync logs</p>
         </div>
         <div class="actions-row">
-          <button class="btn btn-outline btn-sm" id="btn-clear-demo" onclick="handleClearDemoData()" style="border-color: rgba(218, 13, 10, 0.4); color: #ff4d6d;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <button class="btn btn-outline btn-sm" id="btn-clear-demo" onclick="handleClearDemoData()"
+            style="border-color: rgba(218, 13, 10, 0.4); color: #ff4d6d;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
             Clear Demo Data (Keep Only Sheet Data)
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-export-csv">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
             Export Cleaned CSV
           </button>
         </div>
@@ -1037,7 +1256,9 @@
         </div>
         <div class="pipeline-arrow">&rarr;</div>
         <div class="pipeline-step">
-          <div class="step-icon" style="background: rgba(16, 185, 129, 0.2); border-color: var(--accent-emerald); color: var(--accent-emerald);">&#x2714;</div>
+          <div class="step-icon"
+            style="background: rgba(16, 185, 129, 0.2); border-color: var(--accent-emerald); color: var(--accent-emerald);">
+            &#x2714;</div>
           <div class="step-title">Looker Studio</div>
           <div class="step-desc">Executive Visuals</div>
         </div>
@@ -1046,7 +1267,8 @@
       <!-- Filterable Cleaned Records Table -->
       <div class="table-card">
         <div class="card-header" style="padding: 1rem 1.25rem;">
-          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; width: 100%; align-items: center; justify-content: space-between;">
+          <div
+            style="display: flex; gap: 0.75rem; flex-wrap: wrap; width: 100%; align-items: center; justify-content: space-between;">
             <div style="display: flex; gap: 0.75rem; align-items: center;">
               <select id="filter-platform" class="form-select" style="width: 140px;">
                 <option value="">All Platforms</option>
@@ -1056,7 +1278,8 @@
                 <option value="tiktok">TikTok</option>
                 <option value="snapchat">Snapchat</option>
               </select>
-              <input type="text" id="filter-search" class="form-input" placeholder="Search campaign or ad name..." style="width: 240px;">
+              <input type="text" id="filter-search" class="form-input" placeholder="Search campaign or ad name..."
+                style="width: 240px;">
             </div>
             <div id="records-count-info" style="font-size: 0.8rem; color: var(--text-muted);">
               Showing records
@@ -1082,7 +1305,9 @@
               </tr>
             </thead>
             <tbody id="cleaned-records-body">
-              <tr><td colspan="12" style="text-align: center; padding: 2rem;">Loading cleaned records...</td></tr>
+              <tr>
+                <td colspan="12" style="text-align: center; padding: 2rem;">Loading cleaned records...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1131,7 +1356,8 @@
           </div>
           <div class="form-group">
             <label>Service Account Key JSON (or Path to key.json)</label>
-            <textarea class="form-textarea" id="bq-sa-json" placeholder='{"type": "service_account", "project_id": "...", ...}'></textarea>
+            <textarea class="form-textarea" id="bq-sa-json"
+              placeholder='{"type": "service_account", "project_id": "...", ...}'></textarea>
           </div>
           <div class="switch-wrap">
             <span class="switch-label">Auto-Push to BigQuery on every sync</span>
@@ -1149,45 +1375,52 @@
             <span class="card-badge">Optimized for Looker Studio</span>
           </div>
           <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
-            BigQuery tables are created with native <strong>DAY partitioning</strong> on <code>date</code> and <strong>clustering</strong> on <code>platform, client_id, campaign_name</code> for ultra-low query latency and minimal Looker Studio scan costs.
+            BigQuery tables are created with native <strong>DAY partitioning</strong> on <code>date</code> and
+            <strong>clustering</strong> on <code>platform, client_id, campaign_name</code> for ultra-low query latency
+            and minimal Looker Studio scan costs.
           </div>
-          
+
           <div style="margin-bottom: 0.75rem;">
             <strong style="color: var(--text-primary); font-size: 0.82rem;">Automated Looker Views Created:</strong>
             <ul style="margin: 0.5rem 0 0.5rem 1.25rem; font-size: 0.8rem; color: var(--text-secondary);">
-              <li><code>v_looker_studio_daily_overview</code>: Flat daily cross-channel view with all 11 raw metrics, 8 nomenclature dimensions, and 17 safe-calculated ratios.</li>
-              <li><code>v_looker_studio_weekly_nomenclature</code>: Weekly rollup by the 8 taxonomy dimensions (Category, Product, Funnel, Sale/Offer, Audience, Hook, Format, Landing Page).</li>
-              <li><code>v_looker_studio_creative_performance</code>: Creative/video performance table with 3s video play rates (Thumbstop), 15s ThruPlays, and cost efficiencies.</li>
+              <li><code>v_looker_studio_daily_overview</code>: Flat daily cross-channel view with all 11 raw metrics, 8
+                nomenclature dimensions, and 17 safe-calculated ratios.</li>
+              <li><code>v_looker_studio_weekly_nomenclature</code>: Weekly rollup by the 8 taxonomy dimensions
+                (Category, Product, Funnel, Sale/Offer, Audience, Hook, Format, Landing Page).</li>
+              <li><code>v_looker_studio_creative_performance</code>: Creative/video performance table with 3s video play
+                rates (Thumbstop), 15s ThruPlays, and cost efficiencies.</li>
             </ul>
           </div>
 
           <div style="margin-top: 1rem;">
-            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Generated BigQuery DDL Preview:</label>
+            <label
+              style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Generated
+              BigQuery DDL Preview:</label>
             <div class="code-box" id="bq-ddl-preview" style="height: 180px;">
-CREATE TABLE IF NOT EXISTS `PROJECT.tgm_reporting.unified_ad_performance` (
-  record_id STRING NOT NULL,
-  date DATE NOT NULL,
-  client_id STRING NOT NULL,
-  platform STRING NOT NULL, -- Meta, Google, LinkedIn, TikTok, Snapchat
-  campaign_name STRING, adset_name STRING, ad_name STRING,
-  -- 8 Nomenclature Dimensions
-  category_collection STRING, product_name STRING, funnel STRING,
-  sale_offer STRING, audience_type STRING, concept_angle_hook STRING,
-  format STRING, landing_page STRING,
-  -- 11 Input Raw Metrics
-  spend FLOAT64, purchases_conversion_value FLOAT64, purchases FLOAT64,
-  landing_page_views INT64, reach INT64, impressions INT64, link_clicks INT64,
-  video_plays_3s INT64, thruplays_15s INT64, adds_to_cart INT64, checkouts_initiated INT64,
-  -- 17 Formulated Metrics
-  purchase_roas FLOAT64, cost_per_purchase FLOAT64, avg_purchase_conversion_value FLOAT64,
-  purchase_rate_per_lpv FLOAT64, cost_per_lpv FLOAT64, lpv_rate_per_link_clicks FLOAT64,
-  frequency FLOAT64, cpm FLOAT64, cpc FLOAT64, ctr FLOAT64,
-  video_plays_3s_rate_per_impressions FLOAT64, cost_per_video_play_3s FLOAT64,
-  cost_per_thruplay_15s FLOAT64, cost_per_add_to_cart FLOAT64, add_to_cart_pct FLOAT64,
-  cost_per_checkout_initiated FLOAT64, checkout_initiated_pct FLOAT64
-)
-PARTITION BY date
-CLUSTER BY platform, client_id, campaign_name;
+              CREATE TABLE IF NOT EXISTS `PROJECT.tgm_reporting.unified_ad_performance` (
+              record_id STRING NOT NULL,
+              date DATE NOT NULL,
+              client_id STRING NOT NULL,
+              platform STRING NOT NULL, -- Meta, Google, LinkedIn, TikTok, Snapchat
+              campaign_name STRING, adset_name STRING, ad_name STRING,
+              -- 8 Nomenclature Dimensions
+              category_collection STRING, product_name STRING, funnel STRING,
+              sale_offer STRING, audience_type STRING, concept_angle_hook STRING,
+              format STRING, landing_page STRING,
+              -- 11 Input Raw Metrics
+              spend FLOAT64, purchases_conversion_value FLOAT64, purchases FLOAT64,
+              landing_page_views INT64, reach INT64, impressions INT64, link_clicks INT64,
+              video_plays_3s INT64, thruplays_15s INT64, adds_to_cart INT64, checkouts_initiated INT64,
+              -- 17 Formulated Metrics
+              purchase_roas FLOAT64, cost_per_purchase FLOAT64, avg_purchase_conversion_value FLOAT64,
+              purchase_rate_per_lpv FLOAT64, cost_per_lpv FLOAT64, lpv_rate_per_link_clicks FLOAT64,
+              frequency FLOAT64, cpm FLOAT64, cpc FLOAT64, ctr FLOAT64,
+              video_plays_3s_rate_per_impressions FLOAT64, cost_per_video_play_3s FLOAT64,
+              cost_per_thruplay_15s FLOAT64, cost_per_add_to_cart FLOAT64, add_to_cart_pct FLOAT64,
+              cost_per_checkout_initiated FLOAT64, checkout_initiated_pct FLOAT64
+              )
+              PARTITION BY date
+              CLUSTER BY platform, client_id, campaign_name;
             </div>
           </div>
         </div>
@@ -1202,7 +1435,8 @@ CLUSTER BY platform, client_id, campaign_name;
           <p>Connect BigQuery directly to Looker Studio and embed interactive dashboards</p>
         </div>
         <div class="actions-row">
-          <a href="https://lookerstudio.google.com/datasources/create?connectorId=bigQuery" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+          <a href="https://lookerstudio.google.com/datasources/create?connectorId=bigQuery" target="_blank"
+            rel="noopener" class="btn btn-primary btn-sm">
             Open Looker Studio BigQuery Connector &rarr;
           </a>
         </div>
@@ -1215,10 +1449,14 @@ CLUSTER BY platform, client_id, campaign_name;
             <div class="card-title">1. Connect BigQuery in Looker Studio</div>
           </div>
           <ol style="margin-left: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.8;">
-            <li>Go to <a href="https://lookerstudio.google.com" target="_blank" style="color: var(--accent-indigo);">Looker Studio</a> and click <strong>Create &rarr; Data Source</strong>.</li>
+            <li>Go to <a href="https://lookerstudio.google.com" target="_blank"
+                style="color: var(--accent-indigo);">Looker Studio</a> and click <strong>Create &rarr; Data
+                Source</strong>.</li>
             <li>Select the official <strong>BigQuery</strong> connector by Google.</li>
-            <li>Choose <strong>My Projects</strong> &rarr; Select your GCP Project &rarr; Dataset: <code>tgm_reporting</code>.</li>
-            <li>Select the Table <code>unified_ad_performance</code> or View <code>v_looker_studio_daily_overview</code>.</li>
+            <li>Choose <strong>My Projects</strong> &rarr; Select your GCP Project &rarr; Dataset:
+              <code>tgm_reporting</code>.</li>
+            <li>Select the Table <code>unified_ad_performance</code> or View
+              <code>v_looker_studio_daily_overview</code>.</li>
             <li>Click <strong>Connect</strong> in the top-right corner.</li>
           </ol>
         </div>
@@ -1228,23 +1466,24 @@ CLUSTER BY platform, client_id, campaign_name;
             <div class="card-title">2. Looker Studio Calculated Fields</div>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
-            Add these calculated fields in Looker Studio so aggregated metrics recalculate accurately at any date range or filter:
+            Add these calculated fields in Looker Studio so aggregated metrics recalculate accurately at any date range
+            or filter:
           </p>
           <div class="code-box" style="margin-bottom: 0.5rem; max-height: 140px; overflow-y: auto;">
-<strong>Purchase ROAS:</strong>
-SUM(purchases_conversion_value) / NULLIF(SUM(spend), 0)
+            <strong>Purchase ROAS:</strong>
+            SUM(purchases_conversion_value) / NULLIF(SUM(spend), 0)
 
-<strong>Cost per Purchase (CPA):</strong>
-SUM(spend) / NULLIF(SUM(purchases), 0)
+            <strong>Cost per Purchase (CPA):</strong>
+            SUM(spend) / NULLIF(SUM(purchases), 0)
 
-<strong>Purchase Rate per LPV (%):</strong>
-(SUM(purchases) / NULLIF(SUM(landing_page_views), 0)) * 100
+            <strong>Purchase Rate per LPV (%):</strong>
+            (SUM(purchases) / NULLIF(SUM(landing_page_views), 0)) * 100
 
-<strong>Thumbstop Rate (%):</strong>
-(SUM(video_plays_3s) / NULLIF(SUM(impressions), 0)) * 100
+            <strong>Thumbstop Rate (%):</strong>
+            (SUM(video_plays_3s) / NULLIF(SUM(impressions), 0)) * 100
 
-<strong>Add to Cart %:</strong>
-(SUM(adds_to_cart) / NULLIF(SUM(landing_page_views), 0)) * 100
+            <strong>Add to Cart %:</strong>
+            (SUM(adds_to_cart) / NULLIF(SUM(landing_page_views), 0)) * 100
           </div>
         </div>
       </div>
@@ -1254,7 +1493,9 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         <div class="card-header">
           <div class="card-title">Looker Studio Embedded Dashboard</div>
           <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <input type="text" id="looker-embed-input" class="form-input" placeholder="Paste Looker Studio Embed URL (https://lookerstudio.google.com/embed/reporting/...)" style="width: 380px;">
+            <input type="text" id="looker-embed-input" class="form-input"
+              placeholder="Paste Looker Studio Embed URL (https://lookerstudio.google.com/embed/reporting/...)"
+              style="width: 380px;">
             <button class="btn btn-secondary btn-sm" id="btn-save-embed-url">Save & Load</button>
           </div>
         </div>
@@ -1273,7 +1514,10 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         </div>
         <div class="actions-row">
           <button class="btn btn-primary" id="btn-open-add-user-modal">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
             Add Team Member
           </button>
         </div>
@@ -1285,7 +1529,10 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           <div class="kpi-header">
             <span class="kpi-title">TOTAL INTERNAL USERS</span>
             <div class="kpi-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo-light);">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="team-stat-total">0</div>
@@ -1296,7 +1543,10 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           <div class="kpi-header">
             <span class="kpi-title">SUPER ADMINISTRATORS</span>
             <div class="kpi-icon" style="background: rgba(218, 13, 10, 0.15); color: var(--accent-red-light);">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value highlight-value" id="team-stat-admins">0</div>
@@ -1307,7 +1557,10 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           <div class="kpi-header">
             <span class="kpi-title">RESTRICTED TEAM MEMBERS</span>
             <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald-light);">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4M12 8h.01" />
+              </svg>
             </div>
           </div>
           <div class="kpi-value" id="team-stat-members">0</div>
@@ -1337,7 +1590,10 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
               </tr>
             </thead>
             <tbody id="team-users-tbody">
-              <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading team roster...</td></tr>
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading team
+                  roster...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1386,7 +1642,8 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         <div class="switch-wrap">
           <div>
             <span class="switch-label">Sandbox Mock Mode</span>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">Generates high-fidelity realistic data if API keys are unconfigured</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Generates high-fidelity realistic data if API
+              keys are unconfigured</div>
           </div>
           <input type="checkbox" id="sync-use-mock" checked>
         </div>
@@ -1447,9 +1704,14 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           </select>
         </div>
 
-        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 1rem;">
-          <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-light); margin-bottom: 0.5rem;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <div
+          style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 1rem;">
+          <div
+            style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-light); margin-bottom: 0.5rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
             Primary Ad Account & Google Sheet
           </div>
           <div class="form-group" style="margin-bottom: 0.5rem;">
@@ -1458,7 +1720,8 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           </div>
           <div class="form-group" style="margin-bottom: 0.5rem;">
             <label style="font-size: 0.72rem;">Google Sheet URL or Spreadsheet ID</label>
-            <input type="text" class="form-input" id="new-client-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+            <input type="text" class="form-input" id="new-client-sheet-url"
+              placeholder="https://docs.google.com/spreadsheets/d/...">
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label style="font-size: 0.72rem;">Worksheet Tab GID (defaults to 0)</label>
@@ -1467,18 +1730,25 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         </div>
 
         <!-- Optional 2nd Ad Account for Consolidated Reporting -->
-        <div style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.75rem;">
-          <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: #a5b4fc; margin-bottom: 0.5rem;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <div
+          style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.75rem;">
+          <div
+            style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: #a5b4fc; margin-bottom: 0.5rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+            </svg>
             Secondary Ad Account (Optional - Enables Consolidated Reporting)
           </div>
           <div class="form-group" style="margin-bottom: 0.5rem;">
             <label style="font-size: 0.72rem;">Secondary Ad Account Name</label>
-            <input type="text" class="form-input" id="new-client-account-2" placeholder="e.g. Meta Ads Store 2 / Scaling">
+            <input type="text" class="form-input" id="new-client-account-2"
+              placeholder="e.g. Meta Ads Store 2 / Scaling">
           </div>
           <div class="form-group" style="margin-bottom: 0.5rem;">
             <label style="font-size: 0.72rem;">Secondary Sheet URL (if separate sheet)</label>
-            <input type="text" class="form-input" id="new-client-sheet-url-2" placeholder="https://docs.google.com/spreadsheets/d/...">
+            <input type="text" class="form-input" id="new-client-sheet-url-2"
+              placeholder="https://docs.google.com/spreadsheets/d/...">
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label style="font-size: 0.72rem;">Secondary Worksheet Tab GID</label>
@@ -1501,7 +1771,9 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           <span style="font-size: 1.3rem;">📊</span>
           <div>
             <h3 style="margin: 0; font-size: 1.15rem;" id="edit-client-modal-title">Configure Client Ad Sources</h3>
-            <span id="edit-client-modal-subtitle" style="font-size: 0.75rem; color: var(--accent-emerald-light);">Dedicated Telemetry Sources & Multi-Account Setup</span>
+            <span id="edit-client-modal-subtitle"
+              style="font-size: 0.75rem; color: var(--accent-emerald-light);">Dedicated Telemetry Sources &
+              Multi-Account Setup</span>
           </div>
         </div>
         <button class="modal-close" onclick="closeModal('modal-client-sheet')">&times;</button>
@@ -1532,13 +1804,19 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         </div>
 
         <!-- Primary Ad Account Source -->
-        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem;">
+        <div
+          style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-light); display: flex; align-items: center; gap: 0.4rem;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div
+              style="font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-light); display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
               Ad Account 1 (Primary Source)
             </div>
-            <a id="edit-client-sheet-link" href="#" target="_blank" style="display: none; font-size: 0.72rem; color: var(--accent-cyan); text-decoration: none;">
+            <a id="edit-client-sheet-link" href="#" target="_blank"
+              style="display: none; font-size: 0.72rem; color: var(--accent-cyan); text-decoration: none;">
               Open in Sheets &rarr;
             </a>
           </div>
@@ -1548,7 +1826,8 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           </div>
           <div class="form-group" style="margin-bottom: 0.5rem;">
             <label style="font-size: 0.72rem;">Google Sheet URL or Spreadsheet ID</label>
-            <input type="text" class="form-input" id="edit-client-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+            <input type="text" class="form-input" id="edit-client-sheet-url"
+              placeholder="https://docs.google.com/spreadsheets/d/...">
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label style="font-size: 0.72rem;">Worksheet Tab GID (e.g. 0 or 886192859)</label>
@@ -1557,20 +1836,27 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         </div>
 
         <!-- Secondary Ad Account Source for Consolidated Reporting -->
-        <div style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem;">
+        <div
+          style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: #a5b4fc; display: flex; align-items: center; gap: 0.4rem;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <div
+              style="font-size: 0.82rem; font-weight: 700; color: #a5b4fc; display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+              </svg>
               Ad Account 2 (Secondary Source - For Consolidated Reporting)
             </div>
           </div>
           <div class="form-group" style="margin-bottom: 0.5rem;">
             <label style="font-size: 0.72rem;">Ad Account 2 Label / Name</label>
-            <input type="text" class="form-input" id="edit-client-account-2" placeholder="e.g. The Sunya - Scaling Catalog">
+            <input type="text" class="form-input" id="edit-client-account-2"
+              placeholder="e.g. The Sunya - Scaling Catalog">
           </div>
           <div class="form-group" style="margin-bottom: 0.5rem;">
             <label style="font-size: 0.72rem;">Secondary Google Sheet URL (Optional if 2nd sheet)</label>
-            <input type="text" class="form-input" id="edit-client-sheet-url-2" placeholder="https://docs.google.com/spreadsheets/d/...">
+            <input type="text" class="form-input" id="edit-client-sheet-url-2"
+              placeholder="https://docs.google.com/spreadsheets/d/...">
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label style="font-size: 0.72rem;">Secondary Worksheet Tab GID</label>
@@ -1578,9 +1864,12 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-          <span style="font-size: 0.74rem; color: var(--text-dim);" id="edit-client-last-synced">Last synced: Never</span>
-          <button type="button" class="btn btn-outline btn-sm" id="btn-clear-client-data" style="color: #ff8080; border-color: rgba(218, 13, 10, 0.35); font-size: 0.72rem;">
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+          <span style="font-size: 0.74rem; color: var(--text-dim);" id="edit-client-last-synced">Last synced:
+            Never</span>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-clear-client-data"
+            style="color: #ff8080; border-color: rgba(218, 13, 10, 0.35); font-size: 0.72rem;">
             Wipe Overlapped Records
           </button>
         </div>
@@ -1589,7 +1878,8 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         <button class="btn btn-outline" onclick="closeModal('modal-client-sheet')">Cancel</button>
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn btn-secondary" id="btn-save-client-sheet-only">Save Configuration</button>
-          <button class="btn btn-primary" id="btn-save-and-sync-client-sheet" style="background: linear-gradient(135deg, #10B981, #059669); border-color: #10B981;">
+          <button class="btn btn-primary" id="btn-save-and-sync-client-sheet"
+            style="background: linear-gradient(135deg, #10B981, #059669); border-color: #10B981;">
             Save & Sync Now
           </button>
         </div>
@@ -1612,9 +1902,10 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
       </div>
       <div class="modal-body">
         <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 1rem 0;">
-          Configure target goals for this account. The dashboard will automatically compare live performance against these targets and display variance indicators.
+          Configure target goals for this account. The dashboard will automatically compare live performance against
+          these targets and display variance indicators.
         </p>
-        
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
           <div class="form-group">
             <label>Target ROAS (x)</label>
@@ -1641,7 +1932,7 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
             <input type="number" step="0.5" class="form-input" id="target-input-cost-lpv" placeholder="e.g. 15.0">
           </div>
         </div>
-        
+
         <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0;">
           <label>Target Purchase Rate / LPV (%)</label>
           <input type="number" step="0.1" class="form-input" id="target-input-purch-rate" placeholder="e.g. 2.5">
@@ -1649,7 +1940,8 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
       </div>
       <div class="modal-footer" style="display: flex; justify-content: space-between;">
         <button class="btn btn-outline" onclick="closeModal('modal-kpi-targets')">Cancel</button>
-        <button class="btn btn-primary" id="btn-save-kpi-targets" style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b;">
+        <button class="btn btn-primary" id="btn-save-kpi-targets"
+          style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b;">
           Save Targets
         </button>
       </div>
@@ -1657,13 +1949,18 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
   </div>
 
   <!-- MODAL: LOGIN / AUTHENTICATION GATE (PUT IN FRONT) -->
-  <div class="modal-overlay" id="modal-login" style="z-index: 10000; backdrop-filter: blur(20px); background: rgba(7, 3, 17, 0.94);">
-    <div class="modal-card" style="max-width: 480px; border-color: rgba(218, 13, 10, 0.45); box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 40px rgba(218, 13, 10, 0.22);">
+  <div class="modal-overlay" id="modal-login"
+    style="z-index: 10000; backdrop-filter: blur(20px); background: rgba(7, 3, 17, 0.94);">
+    <div class="modal-card"
+      style="max-width: 480px; border-color: rgba(218, 13, 10, 0.45); box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 40px rgba(218, 13, 10, 0.22);">
       <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
-        <div style="display: inline-flex; padding: 0.85rem; background: rgba(218, 13, 10, 0.12); border: 1px solid rgba(218, 13, 10, 0.35); border-radius: 50%; margin-bottom: 0.85rem;">
-          <img src="/static/img/tgm_emblem_pure.png" alt="TGM Logo" style="width: 48px; height: 48px; object-fit: contain;">
+        <div
+          style="display: inline-flex; padding: 0.85rem; background: rgba(218, 13, 10, 0.12); border: 1px solid rgba(218, 13, 10, 0.35); border-radius: 50%; margin-bottom: 0.85rem;">
+          <img src="/static/img/tgm_emblem_pure.png" alt="TGM Logo"
+            style="width: 48px; height: 48px; object-fit: contain;">
         </div>
-        <h2 style="font-family: var(--font-display); font-size: 1.65rem; color: #fff; margin-bottom: 0.25rem;">Think Grow Media</h2>
+        <h2 style="font-family: var(--font-display); font-size: 1.65rem; color: #fff; margin-bottom: 0.25rem;">Think
+          Grow Media</h2>
         <span class="brand-badge" style="font-size: 0.72rem; letter-spacing: 0.08em;">INTERNAL REPORTING STUDIO</span>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.6rem; line-height: 1.5;">
           Sign in to access your organization's ad telemetry, BigQuery data warehouse, and client reporting.
@@ -1671,30 +1968,39 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
       </div>
 
       <div class="modal-body" style="padding-top: 0.5rem;">
-        <div id="login-error-alert" style="display: none; padding: 0.75rem 1rem; background: rgba(218, 13, 10, 0.18); border: 1px solid rgba(218, 13, 10, 0.4); border-radius: var(--radius-sm); color: #ff8080; font-size: 0.82rem; margin-bottom: 1rem;"></div>
+        <div id="login-error-alert"
+          style="display: none; padding: 0.75rem 1rem; background: rgba(218, 13, 10, 0.18); border: 1px solid rgba(218, 13, 10, 0.4); border-radius: var(--radius-sm); color: #ff8080; font-size: 0.82rem; margin-bottom: 1rem;">
+        </div>
 
         <form id="form-login" onsubmit="return false;">
           <div class="form-group">
             <label for="login-email">Agency Email Address</label>
-            <input type="email" class="form-input" id="login-email" placeholder="name@thinkgrowmedia.com" required autocomplete="username">
+            <input type="email" class="form-input" id="login-email" placeholder="name@thinkgrowmedia.com" required
+              autocomplete="username">
           </div>
           <div class="form-group">
             <label for="login-password">Password</label>
-            <input type="password" class="form-input" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+            <input type="password" class="form-input" id="login-password" placeholder="••••••••" required
+              autocomplete="current-password">
           </div>
-          <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.5rem;">
+          <button type="submit" class="btn btn-primary" id="btn-submit-login"
+            style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.5rem;">
             Sign In to Studio
           </button>
         </form>
 
         <!-- Quick Switch Demo Credentials -->
         <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.6rem; text-align: center;">One-Click Demo Profiles</div>
+          <div
+            style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.6rem; text-align: center;">
+            One-Click Demo Profiles</div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-quick-admin" style="font-size: 0.75rem; justify-content: center; padding: 0.5rem 0.25rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-quick-admin"
+              style="font-size: 0.75rem; justify-content: center; padding: 0.5rem 0.25rem;">
               <span style="color: var(--accent-red-light); font-weight: 700;">Admin:</span> Surya (All Clients)
             </button>
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-quick-member" style="font-size: 0.75rem; justify-content: center; padding: 0.5rem 0.25rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-quick-member"
+              style="font-size: 0.75rem; justify-content: center; padding: 0.5rem 0.25rem;">
               <span style="color: var(--accent-cyan); font-weight: 700;">Member:</span> Alex (The Sunya)
             </button>
           </div>
@@ -1711,19 +2017,25 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           <span style="font-size: 1.3rem;">🔗</span>
           <div>
             <h3 style="margin: 0; font-size: 1.15rem;">Client Real-Time Dashboard Link</h3>
-            <span id="share-portal-client-title" style="font-size: 0.78rem; color: var(--accent-emerald-light); font-weight: 700;">Client: The Sunya</span>
+            <span id="share-portal-client-title"
+              style="font-size: 0.78rem; color: var(--accent-emerald-light); font-weight: 700;">Client: The Sunya</span>
           </div>
         </div>
         <button class="modal-close" onclick="closeModal('modal-share-portal')">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
-          <div style="font-weight: 700; color: var(--accent-emerald-light); font-size: 0.82rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.4rem;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div
+          style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+          <div
+            style="font-weight: 700; color: var(--accent-emerald-light); font-size: 0.82rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.4rem;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
             Zero Login Required &bull; Strict Client Isolation
           </div>
           <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.5; margin: 0;">
-            Share this link directly with your client. They can view a real-time performance dashboard anytime without a password.
+            Share this link directly with your client. They can view a real-time performance dashboard anytime without a
+            password.
             They are strictly isolated to their own data only.
           </p>
         </div>
@@ -1731,20 +2043,30 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         <div class="form-group">
           <label>Public Live Portal Link</label>
           <div style="display: flex; gap: 0.5rem;">
-            <input type="text" class="form-input" id="share-portal-url-input" readonly style="font-family: var(--font-mono); font-size: 0.82rem; background: rgba(0,0,0,0.5); color: #fff; cursor: text;">
+            <input type="text" class="form-input" id="share-portal-url-input" readonly
+              style="font-family: var(--font-mono); font-size: 0.82rem; background: rgba(0,0,0,0.5); color: #fff; cursor: text;">
             <button class="btn btn-primary" id="btn-copy-portal-link" style="white-space: nowrap;">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
               <span>Copy Link</span>
             </button>
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.08);">
           <button class="btn btn-secondary btn-sm" id="btn-open-portal-newtab">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
             Open Live Portal in New Tab
           </button>
-          <button class="btn btn-outline btn-sm" id="btn-regenerate-portal-token" style="color: var(--accent-flame-light); border-color: rgba(255,26,68,0.3);">
+          <button class="btn btn-outline btn-sm" id="btn-regenerate-portal-token"
+            style="color: var(--accent-flame-light); border-color: rgba(255,26,68,0.3);">
             Revoke & Regenerate
           </button>
         </div>
@@ -1775,7 +2097,9 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         <div class="form-group">
           <label id="lbl-team-user-password">Password</label>
           <input type="password" class="form-input" id="team-user-password" placeholder="••••••••">
-          <div id="team-user-pwd-hint" style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.25rem; display: none;">Leave blank to keep existing password</div>
+          <div id="team-user-pwd-hint"
+            style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.25rem; display: none;">Leave blank to keep
+            existing password</div>
         </div>
         <div class="form-group">
           <label>Role & Permissions</label>
@@ -1786,8 +2110,10 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         </div>
         <div class="form-group" id="team-user-clients-group">
           <label>Assigned Client Portfolios</label>
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem;">Check the specific clients this team member is allowed to see:</div>
-          <div id="team-user-client-checkboxes" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 160px; overflow-y: auto; padding: 0.65rem; background: rgba(0,0,0,0.3); border-radius: var(--radius-xs); border: 1px solid rgba(255,255,255,0.08);">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem;">Check the specific clients
+            this team member is allowed to see:</div>
+          <div id="team-user-client-checkboxes"
+            style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 160px; overflow-y: auto; padding: 0.65rem; background: rgba(0,0,0,0.3); border-radius: var(--radius-xs); border: 1px solid rgba(255,255,255,0.08);">
             <!-- Populated dynamically with checkboxes -->
           </div>
         </div>
@@ -1807,4 +2133,5 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
   <script src="/static/js/charts.js"></script>
   <script src="/static/js/app.js"></script>
 </body>
+
 </html>
