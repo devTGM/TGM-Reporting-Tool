@@ -279,6 +279,98 @@
   color: #ffffff;
 }
 
+[data-theme="light"] .page-title-row h2 {
+  background: linear-gradient(135deg, #0f172a 30%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .page-title-row {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .page-title-row p {
+  color: #475569;
+}
+
+[data-theme="light"] .card-badge {
+  background: rgba(218, 13, 10, 0.08);
+  border-color: rgba(218, 13, 10, 0.30);
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+[data-theme="light"] .date-filter-panel {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .date-scope-label {
+  color: #334155;
+}
+
+[data-theme="light"] .preset-pills-wrap {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: none;
+}
+
+[data-theme="light"] .btn-preset-date {
+  color: #334155;
+  font-weight: 600;
+}
+
+[data-theme="light"] .btn-preset-date:hover {
+  color: #0f172a;
+  background: #e2e8f0;
+}
+
+[data-theme="light"] .btn-preset-date.active {
+  background: linear-gradient(135deg, var(--tgm-crimson) 0%, var(--tgm-crimson-dark) 100%);
+  color: #ffffff;
+}
+
+[data-theme="light"] .custom-date-box {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .custom-date-label {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+[data-theme="light"] .custom-date-arrow {
+  color: #64748b;
+}
+
+[data-theme="light"] .active-date-badge {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(2, 132, 199, 0.32);
+  color: #0369a1;
+  font-weight: 600;
+}
+
+[data-theme="light"] .timeframe-toggle {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .btn-tf {
+  color: #475569;
+  font-weight: 600;
+}
+
+[data-theme="light"] .btn-tf:hover {
+  color: #0f172a;
+}
+
+[data-theme="light"] .btn-tf.active {
+  background: linear-gradient(135deg, var(--tgm-crimson) 0%, var(--tgm-crimson-dark) 100%);
+  color: #ffffff;
+}
+
 /* ==============================================================================
    RESET & FOUNDATIONS
    ============================================================================== */
@@ -733,7 +825,7 @@ body {
   flex-wrap: wrap;
   gap: 1.25rem;
   padding-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .page-title-row h2 {
@@ -1812,6 +1904,48 @@ table.data-table tr:hover td {
 /* ==============================================================================
    DATE SCOPE PRESETS & FILTER PANEL STYLES
    ============================================================================== */
+.date-filter-panel {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(218, 13, 10, 0.25);
+  background: linear-gradient(135deg, rgba(218, 13, 10, 0.05) 0%, rgba(14, 7, 32, 0.95) 100%);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.date-scope-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 0.25rem;
+}
+
+.custom-date-box {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.custom-date-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.custom-date-arrow {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
 .preset-pills-wrap {
   display: flex;
   background: var(--bg-nav-tabs);
