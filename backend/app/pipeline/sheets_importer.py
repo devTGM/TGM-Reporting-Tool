@@ -22,6 +22,8 @@ logger = logging.getLogger("GoogleSheetsImporter")
 COLUMN_ALIASES = {
     "date": ["date", "day", "time", "reporting date", "date_start", "start date"],
     "platform": ["platform", "channel", "network", "source", "ad platform", "ad network"],
+    "account_name": ["account name", "ad account name", "account", "ad account", "ad_account_name", "account_name", "profile name", "sub account", "ad account id/name"],
+    "account_id": ["account id", "ad account id", "act id", "account_id", "ad_account_id"],
     "campaign_name": ["campaign name", "campaign", "campaign_name", "campaigns", "utm_campaign"],
     "adset_name": ["ad set name", "adset name", "adset", "ad set", "ad group", "adgroup name", "target group"],
     "ad_name": ["ad name", "creative name", "ad_name", "creative"],
@@ -250,13 +252,15 @@ def import_google_sheet_records(
         chk = safe_int(get_val("checkouts_initiated", 0))
 
         # Explicitly scope IDs to this client to guarantee zero overlap across clients
+        acc_name = get_val("account_name") or (client.ad_account_1_name if client and client.ad_account_1_name else client_name)
+        acc_id = get_val("account_id") or f"act_{active_client_id}"
         record = UnifiedAdRecord(
             date=row_date,
             client_id=active_client_id,
             client_name=client_name,
             platform=row_platform,
-            account_id=f"act_{active_client_id}",
-            account_name=client_name,
+            account_id=acc_id,
+            account_name=acc_name,
             campaign_id=f"cmp_{active_client_id}_{row_idx + 1}",
             campaign_name=camp_name,
             adset_id=f"adset_{active_client_id}_{row_idx + 1}",

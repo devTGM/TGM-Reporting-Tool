@@ -46,6 +46,15 @@
             </select>
           </div>
 
+          <!-- Multi-Account / Consolidated Selector -->
+          <div class="client-select-wrap" id="ad-account-select-wrap" style="display: none; border-color: rgba(129, 140, 248, 0.35);">
+            <svg width="14" height="14" fill="none" stroke="var(--accent-indigo)" stroke-width="2.2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <label for="global-account-select">Account:</label>
+            <select id="global-account-select" class="select-client" style="max-width: 210px; font-weight: 700; color: #a5b4fc;">
+              <option value="all">🌟 Consolidated (All Accounts)</option>
+            </select>
+          </div>
+
           <div class="client-select-wrap" style="padding: 0.25rem 0.6rem; min-width: auto; gap: 0.35rem;">
             <span style="color: var(--accent-emerald); font-weight: 800; font-size: 0.88rem;">₹</span>
             <label for="global-currency-select" style="font-size: 0.72rem; text-transform: uppercase;">Curr:</label>
@@ -57,6 +66,12 @@
               <option value="AED">AED (د.إ)</option>
             </select>
           </div>
+
+          <!-- Set Targets Button -->
+          <button class="btn btn-secondary btn-sm" id="btn-open-targets-modal" title="Set KPI performance targets for this account" style="padding: 0.35rem 0.65rem; display: flex; align-items: center; gap: 0.35rem; border-color: rgba(255, 205, 87, 0.35); color: #ffcd57;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>Set Targets</span>
+          </button>
 
           <button class="btn btn-primary" id="btn-open-sync-modal">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -174,6 +189,9 @@
             <div id="active-date-badge" class="active-date-badge">
               <span class="badge-dot active"></span> Showing: <strong>All Time (Lifetime)</strong>
             </div>
+            <div id="consolidated-status-badge" class="badge-consolidated" style="display: none;">
+              🌟 Consolidated (All Ad Accounts)
+            </div>
           </div>
 
         </div>
@@ -185,141 +203,277 @@
         <!-- Total Impressions -->
         <div class="kpi-card" style="--card-accent: #38bdf8;">
           <div class="kpi-header">
-            <span class="kpi-label">Total Impressions</span>
+            <span class="kpi-label">
+              Total Impressions
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">👁️ Total Impressions</span>
+                  <span class="metric-tooltip-desc">The total cumulative count of times your advertisements appeared on screen across platforms.</span>
+                  <span class="metric-tooltip-formula">Formula: Sum of impressions</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #38bdf8;">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-impressions">0</div>
           <div class="kpi-sub">
-            <span>Total Ad Delivery</span>
+            <span class="kpi-trend-badge" id="trend-kpi-impressions"></span>
             <span class="kpi-badge-chip" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">Impressions</span>
           </div>
+          <div class="kpi-target-indicator" id="target-kpi-impressions" style="display: none;"></div>
         </div>
 
         <!-- Total Reach -->
         <div class="kpi-card" style="--card-accent: #818cf8;">
           <div class="kpi-header">
-            <span class="kpi-label">Total Reach</span>
+            <span class="kpi-label">
+              Total Reach
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">👥 Total Reach</span>
+                  <span class="metric-tooltip-desc">The estimated total number of unique individual persons who saw your ads at least once.</span>
+                  <span class="metric-tooltip-formula">Formula: Sum of unique user reach</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #818cf8;">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-reach">0</div>
           <div class="kpi-sub" id="kpi-reach-sub">
-            <span>Unique Reached</span>
+            <span class="kpi-trend-badge" id="trend-kpi-reach"></span>
             <span class="kpi-badge-chip" id="kpi-frequency-chip" style="background: rgba(129, 140, 248, 0.15); color: #818cf8; border-color: rgba(129, 140, 248, 0.3);">Freq: 1.00</span>
           </div>
+          <div class="kpi-target-indicator" id="target-kpi-reach" style="display: none;"></div>
         </div>
 
+        <!-- Amount Spent -->
         <div class="kpi-card" style="--card-accent: var(--tgm-crimson);">
           <div class="kpi-header">
-            <span class="kpi-label">Amount Spent</span>
+            <span class="kpi-label">
+              Amount Spent
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">💳 Amount Spent</span>
+                  <span class="metric-tooltip-desc">Total gross advertising budget expended across ad channels and campaigns.</span>
+                  <span class="metric-tooltip-formula">Formula: Sum of ad spend</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: var(--tgm-flame-light);">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-spend">₹0.00</div>
           <div class="kpi-sub">
-            <span>Total Ad Investment</span>
+            <span class="kpi-trend-badge" id="trend-kpi-spend"></span>
             <span class="kpi-badge-chip">Paid Media</span>
           </div>
+          <div class="kpi-target-indicator" id="target-kpi-spend" style="display: none;"></div>
         </div>
 
+        <!-- Purchases Value (Revenue) -->
         <div class="kpi-card" style="--card-accent: var(--accent-emerald);">
           <div class="kpi-header">
-            <span class="kpi-label">Purchases Value</span>
+            <span class="kpi-label">
+              Purchases Value
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">💰 Purchases Value (Revenue)</span>
+                  <span class="metric-tooltip-desc">Total tracked monetary value of website purchases generated directly from campaigns.</span>
+                  <span class="metric-tooltip-formula">Formula: Sum of purchases conversion value</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: var(--accent-emerald-light);">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-revenue" style="color: #34d399;">₹0.00</div>
           <div class="kpi-sub positive" id="kpi-revenue-sub">
-            <span>Attributed Revenue</span>
+            <span class="kpi-trend-badge" id="trend-kpi-revenue"></span>
             <span class="kpi-badge-chip" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">Conversion</span>
           </div>
+          <div class="kpi-target-indicator" id="target-kpi-revenue" style="display: none;"></div>
         </div>
 
+        <!-- Purchase ROAS -->
         <div class="kpi-card" style="--card-accent: var(--accent-gold);">
           <div class="kpi-header">
-            <span class="kpi-label">Purchase ROAS</span>
+            <span class="kpi-label">
+              Purchase ROAS
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">⚡ Purchase ROAS</span>
+                  <span class="metric-tooltip-desc">Return on Ad Spend: Multiple of gross revenue delivered per currency unit spent.</span>
+                  <span class="metric-tooltip-formula">Formula: Purchases Value ÷ Amount Spent</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: var(--accent-gold-light);">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-blended-roas" style="color: #ffcd57;">0.00x</div>
           <div class="kpi-sub">
-            <span>Value &divide; Amount Spent</span>
-            <span class="kpi-badge-chip" style="background: rgba(255, 205, 87, 0.15); color: #ffcd57; border-color: rgba(255, 205, 87, 0.35);">Target 3.0x+</span>
+            <span class="kpi-trend-badge" id="trend-kpi-roas"></span>
+            <span class="kpi-badge-chip" id="kpi-roas-target-chip" style="background: rgba(255, 205, 87, 0.15); color: #ffcd57; border-color: rgba(255, 205, 87, 0.35);">Target: 3.5x</span>
           </div>
+          <div class="kpi-target-indicator" id="target-kpi-roas" style="display: none;"></div>
         </div>
 
+        <!-- Cost per Purchase (CPA) -->
         <div class="kpi-card" style="--card-accent: var(--accent-violet);">
           <div class="kpi-header">
-            <span class="kpi-label">Cost per Purchase</span>
+            <span class="kpi-label">
+              Cost per Purchase
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">🎯 Cost per Purchase (CPA)</span>
+                  <span class="metric-tooltip-desc">Average ad spend required to acquire a single customer purchase order.</span>
+                  <span class="metric-tooltip-formula">Formula: Amount Spent ÷ Total Purchases</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: var(--accent-violet-light);">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-cost-per-purchase">₹0.00</div>
           <div class="kpi-sub" id="kpi-purchases-count">
-            <span>CPA Efficiency</span>
-            <span class="kpi-badge-chip">Purchases</span>
+            <span class="kpi-trend-badge" id="trend-kpi-cpa"></span>
+            <span class="kpi-badge-chip" id="kpi-purchases-chip">0 Purchases</span>
           </div>
+          <div class="kpi-target-indicator" id="target-kpi-cpa" style="display: none;"></div>
         </div>
 
+        <!-- Avg Purchase Value (AOV) -->
         <div class="kpi-card" style="--card-accent: #38bdf8;">
           <div class="kpi-header">
-            <span class="kpi-label">Avg Purchase Value</span>
+            <span class="kpi-label">
+              Avg Purchase Value
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">🛍️ Avg Purchase Value (AOV)</span>
+                  <span class="metric-tooltip-desc">Average gross revenue value per individual purchase transaction.</span>
+                  <span class="metric-tooltip-formula">Formula: Purchases Value ÷ Total Purchases</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #38bdf8;">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-avg-purchase-value">₹0.00</div>
           <div class="kpi-sub">
-            <span>AOV Basket Size</span>
+            <span class="kpi-trend-badge" id="trend-kpi-aov"></span>
             <span class="kpi-badge-chip">Value / Order</span>
           </div>
+          <div class="kpi-target-indicator" id="target-kpi-aov" style="display: none;"></div>
         </div>
       </div>
 
       <!-- Tier 2: Funnel & Conversion Rates (LPV, ATC, IC, Video) -->
       <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 1.75rem;">
+        
+        <!-- Landing Page Views -->
         <div class="kpi-card" style="--card-accent: #38bdf8;">
           <div class="kpi-header">
-            <span class="kpi-label">Landing Page Views</span>
+            <span class="kpi-label">
+              Landing Page Views
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">🔗 Landing Page Views (LPV)</span>
+                  <span class="metric-tooltip-desc">The number of times a user clicked an ad link and the web page successfully loaded.</span>
+                  <span class="metric-tooltip-formula">Formula: Sum of landing page views</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #38bdf8;">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             </div>
           </div>
           <div class="kpi-value" id="kpi-total-lpv" style="font-size: 1.55rem;">0</div>
-          <div class="kpi-sub" id="kpi-lpv-rate">LPV Rate: 0%</div>
+          <div class="kpi-sub" id="kpi-lpv-rate">
+            <span class="kpi-trend-badge" id="trend-kpi-lpv"></span>
+            <span>LPV Rate: 0%</span>
+          </div>
           <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 77%;"></div></div>
         </div>
 
+        <!-- Cost per LPV -->
         <div class="kpi-card" style="--card-accent: #38bdf8;">
           <div class="kpi-header">
-            <span class="kpi-label">Cost per LPV</span>
+            <span class="kpi-label">
+              Cost per LPV
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">💸 Cost per LPV</span>
+                  <span class="metric-tooltip-desc">Average ad spend incurred for each successfully loaded landing page visit.</span>
+                  <span class="metric-tooltip-formula">Formula: Amount Spent ÷ Landing Page Views</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #38bdf8; font-weight: 800;">₹</div>
           </div>
           <div class="kpi-value" id="kpi-cost-per-lpv" style="font-size: 1.55rem;">₹0.00</div>
-          <div class="kpi-sub">Spend &divide; LPV</div>
+          <div class="kpi-sub">
+            <span class="kpi-trend-badge" id="trend-kpi-cost-lpv"></span>
+            <span>Spend &divide; LPV</span>
+          </div>
           <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 45%; background: #38bdf8;"></div></div>
         </div>
 
+        <!-- Purchase Rate / LPV -->
         <div class="kpi-card" style="--card-accent: #a855f7;">
           <div class="kpi-header">
-            <span class="kpi-label">Purchase Rate / LPV</span>
+            <span class="kpi-label">
+              Purchase Rate / LPV
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">📈 Purchase Rate / LPV</span>
+                  <span class="metric-tooltip-desc">Conversion rate from landing page arrival to completed purchase.</span>
+                  <span class="metric-tooltip-formula">Formula: (Total Purchases ÷ LPV) × 100%</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #c084fc;">%</div>
           </div>
           <div class="kpi-value" id="kpi-purchase-rate-lpv" style="font-size: 1.55rem;">0.00%</div>
-          <div class="kpi-sub">(Purchases &divide; LPV) &times; 100</div>
+          <div class="kpi-sub">
+            <span class="kpi-trend-badge" id="trend-kpi-purch-rate"></span>
+            <span>(Purchases &divide; LPV) &times; 100</span>
+          </div>
           <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 35%; background: #a855f7;"></div></div>
         </div>
 
+        <!-- Add to Cart % -->
         <div class="kpi-card" style="--card-accent: #f59e0b;">
           <div class="kpi-header">
-            <span class="kpi-label">Add to Cart %</span>
+            <span class="kpi-label">
+              Add to Cart %
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">🛒 Add to Cart %</span>
+                  <span class="metric-tooltip-desc">Proportion of landing page visitors who added one or more items to their cart.</span>
+                  <span class="metric-tooltip-formula">Formula: (Adds to Cart ÷ LPV) × 100%</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #fbbf24;">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             </div>
@@ -329,9 +483,20 @@
           <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 50%; background: #f59e0b;"></div></div>
         </div>
 
+        <!-- Checkout Initiated % -->
         <div class="kpi-card" style="--card-accent: #ec4899;">
           <div class="kpi-header">
-            <span class="kpi-label">Checkout Initiated %</span>
+            <span class="kpi-label">
+              Checkout Initiated %
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">💳 Checkout Initiated %</span>
+                  <span class="metric-tooltip-desc">Proportion of landing page visitors who proceeded to the payment checkout phase.</span>
+                  <span class="metric-tooltip-formula">Formula: (Checkouts Initiated ÷ LPV) × 100%</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #f472b6;">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             </div>
@@ -341,9 +506,20 @@
           <div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: 25%; background: #ec4899;"></div></div>
         </div>
 
+        <!-- 3s Video Play Rate -->
         <div class="kpi-card" style="--card-accent: #10b981;">
           <div class="kpi-header">
-            <span class="kpi-label">3s Video Play Rate</span>
+            <span class="kpi-label">
+              3s Video Play Rate
+              <span class="metric-info-wrap">
+                <span class="metric-info-icon">i</span>
+                <span class="metric-tooltip">
+                  <span class="metric-tooltip-title">🎬 3s Video Play Rate (Thumbstop)</span>
+                  <span class="metric-tooltip-desc">Creative hook rate: Percentage of impressions where the viewer watched at least 3 seconds.</span>
+                  <span class="metric-tooltip-formula">Formula: (3s Video Plays ÷ Impressions) × 100%</span>
+                </span>
+              </span>
+            </span>
             <div class="kpi-icon-wrap" style="color: #34d399;">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </div>
@@ -357,12 +533,32 @@
       <!-- Charts Row -->
       <div class="charts-grid">
         <div class="card">
-          <div class="card-header">
-            <div class="card-title">
+          <div class="card-header" style="flex-wrap: wrap; gap: 0.5rem;">
+            <div class="card-title" id="daily-trend-chart-title">
               <svg width="18" height="18" fill="none" stroke="var(--accent-indigo)" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              Daily Spend vs Revenue Trend
+              Daily Performance Trend
             </div>
-            <span class="card-badge">Daily Performance</span>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <label for="chart-metric-select" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Metric:</label>
+              <select id="chart-metric-select" class="chart-metric-select">
+                <option value="spend_vs_revenue" selected>Spend vs Revenue (Dual)</option>
+                <option value="spend">Ad Spend</option>
+                <option value="revenue">Attributed Revenue</option>
+                <option value="roas">Purchase ROAS</option>
+                <option value="cpa">Cost per Purchase (CPA)</option>
+                <option value="purchases">Total Purchases</option>
+                <option value="impressions">Total Impressions</option>
+                <option value="reach">Total Reach</option>
+                <option value="clicks">Link Clicks</option>
+                <option value="lpv">Landing Page Views (LPV)</option>
+                <option value="cost_per_lpv">Cost per LPV</option>
+                <option value="ctr">Click-Through Rate (CTR %)</option>
+                <option value="cpc">Cost per Click (CPC)</option>
+                <option value="cpm">CPM</option>
+                <option value="atc">Adds to Cart</option>
+                <option value="checkouts">Checkouts Initiated</option>
+              </select>
+            </div>
           </div>
           <div class="chart-wrapper">
             <canvas id="chart-daily-trend"></canvas>
@@ -397,15 +593,42 @@
             <thead>
               <tr>
                 <th>Ad Platform</th>
-                <th>Ad Spend</th>
-                <th>Impressions</th>
-                <th>Clicks</th>
-                <th>CTR</th>
-                <th>Avg CPC</th>
-                <th>Conversions</th>
-                <th>Revenue</th>
-                <th>ROAS</th>
-                <th>CPA</th>
+                <th>
+                  Ad Spend
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">💳 Ad Spend</span><span class="metric-tooltip-desc">Total gross advertising cost invested in this channel.</span><span class="metric-tooltip-formula">Formula: Sum of spend</span></span></span>
+                </th>
+                <th>
+                  Impressions
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">👁️ Impressions</span><span class="metric-tooltip-desc">Times ads were shown on screen to users.</span><span class="metric-tooltip-formula">Formula: Sum of views</span></span></span>
+                </th>
+                <th>
+                  Clicks
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">🖱️ Link Clicks</span><span class="metric-tooltip-desc">Total clicks on ad links heading to landing page.</span><span class="metric-tooltip-formula">Formula: Sum of link clicks</span></span></span>
+                </th>
+                <th>
+                  CTR
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">🎯 Click-Through Rate</span><span class="metric-tooltip-desc">Percentage of impressions that resulted in a click.</span><span class="metric-tooltip-formula">Formula: (Link Clicks ÷ Impressions) × 100%</span></span></span>
+                </th>
+                <th>
+                  Avg CPC
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">💵 Cost Per Click</span><span class="metric-tooltip-desc">Average cost paid per outbound link click.</span><span class="metric-tooltip-formula">Formula: Spend ÷ Link Clicks</span></span></span>
+                </th>
+                <th>
+                  Conversions
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">📦 Conversions</span><span class="metric-tooltip-desc">Total number of completed purchase orders.</span><span class="metric-tooltip-formula">Formula: Count of tracked purchases</span></span></span>
+                </th>
+                <th>
+                  Revenue
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">💰 Attributed Revenue</span><span class="metric-tooltip-desc">Gross sales value delivered by purchases.</span><span class="metric-tooltip-formula">Formula: Sum of purchases conversion value</span></span></span>
+                </th>
+                <th>
+                  ROAS
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">⚡ Return On Ad Spend</span><span class="metric-tooltip-desc">Gross revenue returned per currency unit spent.</span><span class="metric-tooltip-formula">Formula: Revenue ÷ Ad Spend</span></span></span>
+                </th>
+                <th>
+                  CPA
+                  <span class="metric-info-wrap"><span class="metric-info-icon">i</span><span class="metric-tooltip"><span class="metric-tooltip-title">🎯 Cost per Acquisition</span><span class="metric-tooltip-desc">Average ad cost to acquire a single purchase.</span><span class="metric-tooltip-formula">Formula: Spend ÷ Purchases</span></span></span>
+                </th>
               </tr>
             </thead>
             <tbody id="platform-matrix-body">
@@ -1198,7 +1421,11 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
         <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 1rem;">
           <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-light); margin-bottom: 0.5rem;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Dedicated Google Sheet (Optional / Can Configure Later)
+            Primary Ad Account & Google Sheet
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label style="font-size: 0.72rem;">Primary Ad Account Name</label>
+            <input type="text" class="form-input" id="new-client-account-1" placeholder="e.g. Meta Ads Store 1">
           </div>
           <div class="form-group" style="margin-bottom: 0.5rem;">
             <label style="font-size: 0.72rem;">Google Sheet URL or Spreadsheet ID</label>
@@ -1207,6 +1434,26 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           <div class="form-group" style="margin-bottom: 0;">
             <label style="font-size: 0.72rem;">Worksheet Tab GID (defaults to 0)</label>
             <input type="text" class="form-input" id="new-client-sheet-gid" placeholder="0" value="0">
+          </div>
+        </div>
+
+        <!-- Optional 2nd Ad Account for Consolidated Reporting -->
+        <div style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: #a5b4fc; margin-bottom: 0.5rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            Secondary Ad Account (Optional - Enables Consolidated Reporting)
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label style="font-size: 0.72rem;">Secondary Ad Account Name</label>
+            <input type="text" class="form-input" id="new-client-account-2" placeholder="e.g. Meta Ads Store 2 / Scaling">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label style="font-size: 0.72rem;">Secondary Sheet URL (if separate sheet)</label>
+            <input type="text" class="form-input" id="new-client-sheet-url-2" placeholder="https://docs.google.com/spreadsheets/d/...">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.72rem;">Secondary Worksheet Tab GID</label>
+            <input type="text" class="form-input" id="new-client-sheet-gid-2" placeholder="0" value="0">
           </div>
         </div>
       </div>
@@ -1219,13 +1466,13 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
 
   <!-- MODAL: CONFIGURE CLIENT GOOGLE SHEET & PROFILE -->
   <div class="modal-overlay" id="modal-client-sheet">
-    <div class="modal-card" style="max-width: 560px;">
+    <div class="modal-card" style="max-width: 580px;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 0.6rem;">
           <span style="font-size: 1.3rem;">📊</span>
           <div>
-            <h3 style="margin: 0; font-size: 1.15rem;" id="edit-client-modal-title">Configure Client Google Sheet</h3>
-            <span id="edit-client-modal-subtitle" style="font-size: 0.75rem; color: var(--accent-emerald-light);">Dedicated Telemetry Source</span>
+            <h3 style="margin: 0; font-size: 1.15rem;" id="edit-client-modal-title">Configure Client Ad Sources</h3>
+            <span id="edit-client-modal-subtitle" style="font-size: 0.75rem; color: var(--accent-emerald-light);">Dedicated Telemetry Sources & Multi-Account Setup</span>
           </div>
         </div>
         <button class="modal-close" onclick="closeModal('modal-client-sheet')">&times;</button>
@@ -1255,26 +1502,50 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
           </div>
         </div>
 
+        <!-- Primary Ad Account Source -->
         <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
             <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-light); display: flex; align-items: center; gap: 0.4rem;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Client Dedicated Google Sheet
+              Ad Account 1 (Primary Source)
             </div>
             <a id="edit-client-sheet-link" href="#" target="_blank" style="display: none; font-size: 0.72rem; color: var(--accent-cyan); text-decoration: none;">
               Open in Sheets &rarr;
             </a>
           </div>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.75rem 0;">
-            Every client has their own isolated Google Sheet. Syncing will strictly affect this client only and will never mix or overlap with other accounts.
-          </p>
-          <div class="form-group" style="margin-bottom: 0.65rem;">
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label style="font-size: 0.72rem;">Ad Account 1 Label / Name</label>
+            <input type="text" class="form-input" id="edit-client-account-1" placeholder="e.g. The Sunya - Main Store">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
             <label style="font-size: 0.72rem;">Google Sheet URL or Spreadsheet ID</label>
             <input type="text" class="form-input" id="edit-client-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/...">
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label style="font-size: 0.72rem;">Worksheet Tab GID (e.g. 0 or 886192859)</label>
             <input type="text" class="form-input" id="edit-client-sheet-gid" placeholder="0" value="0">
+          </div>
+        </div>
+
+        <!-- Secondary Ad Account Source for Consolidated Reporting -->
+        <div style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: #a5b4fc; display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              Ad Account 2 (Secondary Source - For Consolidated Reporting)
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label style="font-size: 0.72rem;">Ad Account 2 Label / Name</label>
+            <input type="text" class="form-input" id="edit-client-account-2" placeholder="e.g. The Sunya - Scaling Catalog">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label style="font-size: 0.72rem;">Secondary Google Sheet URL (Optional if 2nd sheet)</label>
+            <input type="text" class="form-input" id="edit-client-sheet-url-2" placeholder="https://docs.google.com/spreadsheets/d/...">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.72rem;">Secondary Worksheet Tab GID</label>
+            <input type="text" class="form-input" id="edit-client-sheet-gid-2" placeholder="0" value="0">
           </div>
         </div>
 
@@ -1293,6 +1564,65 @@ SUM(spend) / NULLIF(SUM(purchases), 0)
             Save & Sync Now
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SET CLIENT KPI TARGETS -->
+  <div class="modal-overlay" id="modal-kpi-targets">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.3rem;">🎯</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem;">Set Account KPI Targets</h3>
+            <span style="font-size: 0.75rem; color: #ffcd57;">Performance Goals & Up/Down Variance Tracking</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modal-kpi-targets')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 1rem 0;">
+          Configure target goals for this account. The dashboard will automatically compare live performance against these targets and display variance indicators.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label>Target ROAS (x)</label>
+            <input type="number" step="0.1" class="form-input" id="target-input-roas" placeholder="e.g. 3.5">
+          </div>
+          <div class="form-group">
+            <label>Target CPA / Cost per Purchase</label>
+            <input type="number" step="1" class="form-input" id="target-input-cpa" placeholder="e.g. 450">
+          </div>
+          <div class="form-group">
+            <label>Target Spend Budget</label>
+            <input type="number" step="100" class="form-input" id="target-input-spend" placeholder="e.g. 150000">
+          </div>
+          <div class="form-group">
+            <label>Target Revenue / Sales</label>
+            <input type="number" step="100" class="form-input" id="target-input-revenue" placeholder="e.g. 500000">
+          </div>
+          <div class="form-group">
+            <label>Target CTR (%)</label>
+            <input type="number" step="0.1" class="form-input" id="target-input-ctr" placeholder="e.g. 2.0">
+          </div>
+          <div class="form-group">
+            <label>Target Cost per LPV</label>
+            <input type="number" step="0.5" class="form-input" id="target-input-cost-lpv" placeholder="e.g. 15.0">
+          </div>
+        </div>
+        
+        <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0;">
+          <label>Target Purchase Rate / LPV (%)</label>
+          <input type="number" step="0.1" class="form-input" id="target-input-purch-rate" placeholder="e.g. 2.5">
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button class="btn btn-outline" onclick="closeModal('modal-kpi-targets')">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-kpi-targets" style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b;">
+          Save Targets
+        </button>
       </div>
     </div>
   </div>

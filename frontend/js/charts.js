@@ -6,6 +6,10 @@
 
 let dailyTrendChartInstance = null;
 let platformShareChartInstance = null;
+let currentTrendMetric = 'spend_vs_revenue';
+let currentTrendDailyData = [];
+let currentTrendCurrency = '₹';
+let currentTrendTargets = {};
 
 const PLATFORM_COLORS = {
   Meta: '#0081fb',
@@ -15,123 +19,296 @@ const PLATFORM_COLORS = {
   Snapchat: '#facc15'
 };
 
-function initDailyTrendChart(dailyData, currencySym = '₹') {
+const METRIC_CONFIGS = {
+  spend_vs_revenue: {
+    type: 'dual',
+    title: 'Daily Spend vs Revenue Trend',
+    color: '#818cf8'
+  },
+  spend: {
+    label: 'Ad Spend',
+    field: 'spend',
+    color: '#da0d0a',
+    unit: 'currency',
+    title: 'Daily Ad Spend Trend'
+  },
+  revenue: {
+    label: 'Attributed Revenue',
+    field: 'revenue',
+    color: '#10b981',
+    unit: 'currency',
+    title: 'Daily Attributed Revenue Trend'
+  },
+  roas: {
+    label: 'Purchase ROAS',
+    field: 'roas',
+    color: '#ffcd57',
+    unit: 'multiplier',
+    title: 'Daily Purchase ROAS Trend'
+  },
+  cpa: {
+    label: 'Cost per Purchase (CPA)',
+    field: 'cpa',
+    color: '#a855f7',
+    unit: 'currency',
+    title: 'Daily Cost per Purchase Trend'
+  },
+  purchases: {
+    label: 'Total Purchases',
+    field: 'purchases',
+    color: '#ec4899',
+    unit: 'count',
+    title: 'Daily Purchases / Conversions Trend'
+  },
+  impressions: {
+    label: 'Total Impressions',
+    field: 'impressions',
+    color: '#38bdf8',
+    unit: 'count',
+    title: 'Daily Impressions Trend'
+  },
+  reach: {
+    label: 'Total Reach',
+    field: 'reach',
+    color: '#818cf8',
+    unit: 'count',
+    title: 'Daily Reach Trend'
+  },
+  clicks: {
+    label: 'Link Clicks',
+    field: 'clicks',
+    color: '#34d399',
+    unit: 'count',
+    title: 'Daily Link Clicks Trend'
+  },
+  lpv: {
+    label: 'Landing Page Views',
+    field: 'lpv',
+    color: '#06b6d4',
+    unit: 'count',
+    title: 'Daily Landing Page Views Trend'
+  },
+  cost_per_lpv: {
+    label: 'Cost per LPV',
+    field: 'cost_per_lpv',
+    color: '#f59e0b',
+    unit: 'currency',
+    title: 'Daily Cost per LPV Trend'
+  },
+  ctr: {
+    label: 'Click-Through Rate (CTR %)',
+    field: 'ctr',
+    color: '#6366f1',
+    unit: 'percent',
+    title: 'Daily CTR Trend'
+  },
+  cpc: {
+    label: 'Cost per Click (CPC)',
+    field: 'cpc',
+    color: '#14b8a6',
+    unit: 'currency',
+    title: 'Daily CPC Trend'
+  },
+  cpm: {
+    label: 'Cost per 1,000 Impressions (CPM)',
+    field: 'cpm',
+    color: '#8b5cf6',
+    unit: 'currency',
+    title: 'Daily CPM Trend'
+  },
+  atc: {
+    label: 'Adds to Cart',
+    field: 'atc',
+    color: '#fbbf24',
+    unit: 'count',
+    title: 'Daily Adds to Cart Trend'
+  },
+  checkouts: {
+    label: 'Checkouts Initiated',
+    field: 'checkouts',
+    color: '#f43f5e',
+    unit: 'count',
+    title: 'Daily Checkouts Initiated Trend'
+  }
+};
+
+function initDailyTrendChart(dailyData, currencySym = '₹', metric = null, targets = null) {
+  if (dailyData) currentTrendDailyData = dailyData;
+  if (currencySym) currentTrendCurrency = currencySym;
+  if (targets) currentTrendTargets = targets;
+  if (metric) currentTrendMetric = metric;
+
+  const activeMetric = currentTrendMetric || 'spend_vs_revenue';
+  const data = currentTrendDailyData || [];
   const ctx = document.getElementById('chart-daily-trend');
-  if (!ctx) return;
+  if (!ctx || data.length === 0) return;
 
   if (dailyTrendChartInstance) {
     dailyTrendChartInstance.destroy();
   }
 
-  const labels = dailyData.map(d => {
+  const isINR = currentTrendCurrency === '₹';
+  const locale = isINR ? 'en-IN' : 'en-US';
+  const pRadius = data.length <= 2 ? 6 : 2.5;
+
+  const labels = data.map(d => {
     const raw = d.date || d.time_bucket || '';
     return raw.length > 5 ? raw.slice(5) : raw;
   });
-  const spendData = dailyData.map(d => d.spend || 0);
-  const revenueData = dailyData.map(d => d.conversion_value || 0);
-
-  const totalSpend = spendData.reduce((a, b) => a + b, 0);
-  const totalRev = revenueData.reduce((a, b) => a + b, 0);
-  const isDeliveryOnly = (totalSpend === 0 && totalRev === 0);
 
   const canvas = ctx.getContext('2d');
-  
-  // Luxury Multi-Stop Gradients
-  const gradient1 = canvas.createLinearGradient(0, 0, 0, 320);
-  gradient1.addColorStop(0, isDeliveryOnly ? 'rgba(56, 189, 248, 0.45)' : 'rgba(16, 185, 129, 0.45)');
-  gradient1.addColorStop(0.5, isDeliveryOnly ? 'rgba(56, 189, 248, 0.10)' : 'rgba(16, 185, 129, 0.12)');
-  gradient1.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+  const datasets = [];
 
-  const gradient2 = canvas.createLinearGradient(0, 0, 0, 320);
-  gradient2.addColorStop(0, isDeliveryOnly ? 'rgba(129, 140, 248, 0.40)' : 'rgba(218, 13, 10, 0.40)');
-  gradient2.addColorStop(0.5, isDeliveryOnly ? 'rgba(129, 140, 248, 0.08)' : 'rgba(218, 13, 10, 0.08)');
-  gradient2.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+  const cfg = METRIC_CONFIGS[activeMetric] || METRIC_CONFIGS.spend_vs_revenue;
+  const titleEl = document.getElementById('daily-trend-chart-title');
+  if (titleEl) {
+    titleEl.innerHTML = `
+      <svg width="18" height="18" fill="none" stroke="${cfg.color}" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      ${cfg.title}
+    `;
+  }
 
-  const isINR = currencySym === '₹';
-  const locale = isINR ? 'en-IN' : 'en-US';
-  const pRadius = dailyData.length <= 2 ? 6 : 2.5;
+  if (activeMetric === 'spend_vs_revenue') {
+    const spendData = data.map(d => d.spend || 0);
+    const revenueData = data.map(d => d.conversion_value !== undefined ? d.conversion_value : (d.revenue || 0));
+    const totalSpend = spendData.reduce((a, b) => a + b, 0);
+    const totalRev = revenueData.reduce((a, b) => a + b, 0);
+    const isDeliveryOnly = (totalSpend === 0 && totalRev === 0);
 
-  const dataset1 = isDeliveryOnly ? {
-    label: 'Daily Impressions',
-    data: dailyData.map(d => d.impressions || 0),
-    borderColor: '#38bdf8',
-    backgroundColor: gradient1,
-    borderWidth: 2.8,
-    tension: 0.4,
-    fill: true,
-    pointBackgroundColor: '#38bdf8',
-    pointBorderColor: '#ffffff',
-    pointBorderWidth: 1.5,
-    pointRadius: pRadius,
-    pointHoverRadius: 7,
-    pointHoverBackgroundColor: '#7dd3fc',
-    pointHoverBorderColor: '#ffffff',
-    pointHoverBorderWidth: 2.5
-  } : {
-    label: `Attributed Revenue (${currencySym})`,
-    data: revenueData,
-    borderColor: '#10b981',
-    backgroundColor: gradient1,
-    borderWidth: 2.8,
-    tension: 0.4,
-    fill: true,
-    pointBackgroundColor: '#10b981',
-    pointBorderColor: '#ffffff',
-    pointBorderWidth: 1.5,
-    pointRadius: pRadius,
-    pointHoverRadius: 7,
-    pointHoverBackgroundColor: '#34d399',
-    pointHoverBorderColor: '#ffffff',
-    pointHoverBorderWidth: 2.5
-  };
+    const gradient1 = canvas.createLinearGradient(0, 0, 0, 320);
+    gradient1.addColorStop(0, isDeliveryOnly ? 'rgba(56, 189, 248, 0.45)' : 'rgba(16, 185, 129, 0.45)');
+    gradient1.addColorStop(0.5, isDeliveryOnly ? 'rgba(56, 189, 248, 0.10)' : 'rgba(16, 185, 129, 0.12)');
+    gradient1.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
 
-  const dataset2 = isDeliveryOnly ? {
-    label: 'Daily Reach',
-    data: dailyData.map(d => d.reach || 0),
-    borderColor: '#818cf8',
-    backgroundColor: gradient2,
-    borderWidth: 2.2,
-    borderDash: [5, 5],
-    tension: 0.4,
-    fill: true,
-    pointBackgroundColor: '#818cf8',
-    pointBorderColor: '#ffffff',
-    pointBorderWidth: 1.5,
-    pointRadius: pRadius,
-    pointHoverRadius: 7,
-    pointHoverBackgroundColor: '#a5b4fc',
-    pointHoverBorderColor: '#ffffff',
-    pointHoverBorderWidth: 2.5
-  } : {
-    label: `Ad Spend (${currencySym})`,
-    data: spendData,
-    borderColor: '#da0d0a',
-    backgroundColor: gradient2,
-    borderWidth: 2.2,
-    borderDash: [5, 5],
-    tension: 0.4,
-    fill: true,
-    pointBackgroundColor: '#da0d0a',
-    pointBorderColor: '#ffffff',
-    pointBorderWidth: 1.5,
-    pointRadius: pRadius,
-    pointHoverRadius: 7,
-    pointHoverBackgroundColor: '#ff1a44',
-    pointHoverBorderColor: '#ffffff',
-    pointHoverBorderWidth: 2.5
-  };
+    const gradient2 = canvas.createLinearGradient(0, 0, 0, 320);
+    gradient2.addColorStop(0, isDeliveryOnly ? 'rgba(129, 140, 248, 0.40)' : 'rgba(218, 13, 10, 0.40)');
+    gradient2.addColorStop(0.5, isDeliveryOnly ? 'rgba(129, 140, 248, 0.08)' : 'rgba(218, 13, 10, 0.08)');
+    gradient2.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+
+    datasets.push(isDeliveryOnly ? {
+      label: 'Daily Impressions',
+      data: data.map(d => d.impressions || 0),
+      borderColor: '#38bdf8',
+      backgroundColor: gradient1,
+      borderWidth: 2.8,
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#38bdf8',
+      pointBorderColor: '#ffffff',
+      pointRadius: pRadius,
+      pointHoverRadius: 7
+    } : {
+      label: `Attributed Revenue (${currentTrendCurrency})`,
+      data: revenueData,
+      borderColor: '#10b981',
+      backgroundColor: gradient1,
+      borderWidth: 2.8,
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#10b981',
+      pointBorderColor: '#ffffff',
+      pointRadius: pRadius,
+      pointHoverRadius: 7
+    });
+
+    datasets.push(isDeliveryOnly ? {
+      label: 'Daily Reach',
+      data: data.map(d => d.reach || 0),
+      borderColor: '#818cf8',
+      backgroundColor: gradient2,
+      borderWidth: 2.2,
+      borderDash: [5, 5],
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#818cf8',
+      pointBorderColor: '#ffffff',
+      pointRadius: pRadius,
+      pointHoverRadius: 7
+    } : {
+      label: `Ad Spend (${currentTrendCurrency})`,
+      data: spendData,
+      borderColor: '#da0d0a',
+      backgroundColor: gradient2,
+      borderWidth: 2.2,
+      borderDash: [5, 5],
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#da0d0a',
+      pointBorderColor: '#ffffff',
+      pointRadius: pRadius,
+      pointHoverRadius: 7
+    });
+  } else {
+    // Single Metric Mode
+    const values = data.map(d => {
+      if (cfg.field === 'revenue') return d.conversion_value !== undefined ? d.conversion_value : (d.revenue || 0);
+      if (cfg.field === 'roas') return d.purchase_roas !== undefined ? d.purchase_roas : (d.roas || 0);
+      if (cfg.field === 'cpa') return d.cost_per_purchase !== undefined ? d.cost_per_purchase : (d.cpa || 0);
+      if (cfg.field === 'clicks') return d.link_clicks !== undefined ? d.link_clicks : (d.clicks || 0);
+      if (cfg.field === 'lpv') return d.landing_page_views !== undefined ? d.landing_page_views : (d.lpv || 0);
+      if (cfg.field === 'atc') return d.adds_to_cart !== undefined ? d.adds_to_cart : (d.atc || 0);
+      if (cfg.field === 'checkouts') return d.checkouts_initiated !== undefined ? d.checkouts_initiated : (d.checkouts || 0);
+      return d[cfg.field] || 0;
+    });
+
+    const gradient = canvas.createLinearGradient(0, 0, 0, 320);
+    gradient.addColorStop(0, `${cfg.color}55`);
+    gradient.addColorStop(0.5, `${cfg.color}15`);
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+
+    datasets.push({
+      label: cfg.label,
+      data: values,
+      borderColor: cfg.color,
+      backgroundColor: gradient,
+      borderWidth: 2.8,
+      tension: 0.38,
+      fill: true,
+      pointBackgroundColor: cfg.color,
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1.5,
+      pointRadius: pRadius,
+      pointHoverRadius: 7,
+      pointHoverBackgroundColor: cfg.color,
+      pointHoverBorderColor: '#ffffff',
+      pointHoverBorderWidth: 2.5
+    });
+
+    // Check if a target benchmark exists for this metric
+    let targetVal = null;
+    if (currentTrendTargets) {
+      if (activeMetric === 'roas' && currentTrendTargets.roas) targetVal = parseFloat(currentTrendTargets.roas);
+      else if (activeMetric === 'cpa' && currentTrendTargets.cpa) targetVal = parseFloat(currentTrendTargets.cpa);
+      else if (activeMetric === 'spend' && currentTrendTargets.spend) targetVal = parseFloat(currentTrendTargets.spend) / 30;
+      else if (activeMetric === 'revenue' && currentTrendTargets.revenue) targetVal = parseFloat(currentTrendTargets.revenue) / 30;
+      else if (activeMetric === 'ctr' && currentTrendTargets.ctr) targetVal = parseFloat(currentTrendTargets.ctr);
+      else if (activeMetric === 'cost_per_lpv' && currentTrendTargets.cost_per_lpv) targetVal = parseFloat(currentTrendTargets.cost_per_lpv);
+    }
+
+    if (targetVal !== null && !isNaN(targetVal) && targetVal > 0) {
+      datasets.push({
+        label: `Target Benchmark (${targetVal}${cfg.unit === 'multiplier' ? 'x' : cfg.unit === 'percent' ? '%' : ''})`,
+        data: labels.map(() => targetVal),
+        borderColor: '#ffcd57',
+        borderWidth: 2,
+        borderDash: [6, 4],
+        pointRadius: 0,
+        fill: false
+      });
+    }
+  }
 
   dailyTrendChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
-      datasets: [dataset1, dataset2]
+      datasets: datasets
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       animation: {
-        duration: 900,
+        duration: 750,
         easing: 'easeOutQuart'
       },
       interaction: {
@@ -157,7 +334,7 @@ function initDailyTrendChart(dailyData, currencySym = '₹') {
           titleFont: { family: 'Outfit', size: 13, weight: 700 },
           bodyColor: '#cbd5e1',
           bodyFont: { family: 'Inter', size: 12, weight: 500 },
-          borderColor: isDeliveryOnly ? 'rgba(56, 189, 248, 0.35)' : 'rgba(218, 13, 10, 0.35)',
+          borderColor: 'rgba(129, 140, 248, 0.35)',
           borderWidth: 1,
           padding: 12,
           boxPadding: 6,
@@ -168,11 +345,16 @@ function initDailyTrendChart(dailyData, currencySym = '₹') {
             label: function(context) {
               let label = context.dataset.label || '';
               if (label) label += ': ';
-              if (context.parsed.y !== null) {
-                if (isDeliveryOnly) {
-                  label += Number(context.parsed.y).toLocaleString();
+              const y = context.parsed.y;
+              if (y !== null) {
+                if (cfg.unit === 'currency' || activeMetric === 'spend_vs_revenue') {
+                  label += currentTrendCurrency + Number(y).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else if (cfg.unit === 'multiplier') {
+                  label += Number(y).toFixed(2) + 'x';
+                } else if (cfg.unit === 'percent') {
+                  label += Number(y).toFixed(2) + '%';
                 } else {
-                  label += currencySym + Number(context.parsed.y).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                  label += Number(y).toLocaleString();
                 }
               }
               return label;
@@ -182,18 +364,18 @@ function initDailyTrendChart(dailyData, currencySym = '₹') {
       },
       scales: {
         x: {
-          grid: { 
+          grid: {
             color: 'rgba(255, 255, 255, 0.03)',
             drawBorder: false
           },
-          ticks: { 
-            color: '#64748b', 
+          ticks: {
+            color: '#64748b',
             font: { family: 'Inter', size: 10, weight: 500 },
             maxRotation: 0
           }
         },
         y: {
-          grid: { 
+          grid: {
             color: 'rgba(255, 255, 255, 0.03)',
             drawBorder: false
           },
@@ -201,16 +383,16 @@ function initDailyTrendChart(dailyData, currencySym = '₹') {
             color: '#64748b',
             font: { family: 'JetBrains Mono', size: 10 },
             callback: function(value) {
-              if (isDeliveryOnly) {
-                return (value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value);
-              }
+              if (cfg.unit === 'multiplier') return value + 'x';
+              if (cfg.unit === 'percent') return value + '%';
+              if (cfg.unit === 'count') return value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value;
               if (isINR) {
-                if (value >= 10000000) return currencySym + (value / 10000000).toFixed(1) + 'Cr';
-                if (value >= 100000) return currencySym + (value / 100000).toFixed(1) + 'L';
-                if (value >= 1000) return currencySym + (value / 1000).toFixed(1) + 'k';
-                return currencySym + value;
+                if (value >= 10000000) return currentTrendCurrency + (value / 10000000).toFixed(1) + 'Cr';
+                if (value >= 100000) return currentTrendCurrency + (value / 100000).toFixed(1) + 'L';
+                if (value >= 1000) return currentTrendCurrency + (value / 1000).toFixed(1) + 'k';
+                return currentTrendCurrency + value;
               }
-              return currencySym + (value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value);
+              return currentTrendCurrency + (value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value);
             }
           }
         }

@@ -47,8 +47,13 @@ class ClientProfile(BaseModel):
     industry: Optional[str] = "E-Commerce"
     currency: str = "USD"
     is_active: bool = True
+    ad_account_1_name: Optional[str] = ""
     google_sheet_url: Optional[str] = ""
     google_sheet_gid: Optional[str] = "0"
+    ad_account_2_name: Optional[str] = ""
+    secondary_sheet_url: Optional[str] = ""
+    secondary_sheet_gid: Optional[str] = "0"
+    targets: Optional[Dict[str, Any]] = Field(default_factory=dict)
     last_sheet_synced_at: Optional[str] = None
     total_spend: float = 0.0
     total_revenue: float = 0.0

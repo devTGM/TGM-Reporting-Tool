@@ -228,7 +228,7 @@ function parseLandingPage(text = "") {
   return "Product Detail Page";
 }
 
-function cleanRecord(raw, clientId, clientName) {
+function cleanRecord(raw, clientId, clientName, defaultAccountName = "") {
   const spend = Math.max(0, parseFloat(raw.spend || 0) || 0);
   const revenue = Math.max(0, parseFloat(raw.purchases_conversion_value || 0) || 0);
   const purchases = Math.max(0, parseFloat(raw.purchases || 0) || 0);
@@ -247,12 +247,16 @@ function cleanRecord(raw, clientId, clientName) {
   const context = `${campaign} ${adset} ${ad}`;
 
   const category = parseCategory(context);
+  const accountName = raw.account_name || raw.account || raw.ad_account_name || defaultAccountName || clientName || "Primary Account";
+  const accountId = raw.account_id || raw.ad_account_id || "";
 
   return {
     record_id: raw.record_id || `rec_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
     date: raw.date || new Date().toISOString().split('T')[0],
     client_id: clientId,
     client_name: clientName,
+    account_id: accountId,
+    account_name: accountName,
     platform: raw.platform || "Meta",
     campaign_name: campaign,
     adset_name: adset,
@@ -301,6 +305,8 @@ function cleanRecord(raw, clientId, clientName) {
 const COLUMN_ALIASES = {
   date: ["date", "day", "time", "reporting date", "date_start", "start date"],
   platform: ["platform", "channel", "network", "source", "ad platform", "ad network"],
+  account_name: ["account name", "ad account name", "account", "ad account", "ad_account_name", "account_name", "profile name", "sub account", "ad account id/name"],
+  account_id: ["account id", "ad account id", "act id", "account_id", "ad_account_id"],
   campaign_name: ["campaign name", "campaign", "campaign_name", "campaigns", "utm_campaign"],
   adset_name: ["ad set name", "adset name", "adset", "ad set", "ad group", "adgroup name", "target group"],
   ad_name: ["ad name", "creative name", "ad_name", "creative"],
@@ -465,6 +471,8 @@ function parseCsv(csvText) {
     const row = {
       date: getVal("date", new Date().toISOString().split('T')[0]),
       platform: getVal("platform", "Meta"),
+      account_name: getVal("account_name", ""),
+      account_id: getVal("account_id", ""),
       campaign_name: getVal("campaign_name", `Campaign ${i - bestHeaderIdx}`),
       adset_name: getVal("adset_name", "General AdSet"),
       ad_name: getVal("ad_name", "Main Creative"),
@@ -508,6 +516,9 @@ async function executeSheetSync({ client_id, sheet_url_or_id, gid, replace_exist
     throw new Error(`No Google Sheet URL configured for ${client.name}. Please configure sheet URL first.`);
   }
 
+  const primaryAccName = client.ad_account_1_name || (client.secondary_sheet_url ? `${client.name} - Ad Account 1` : client.name);
+  let cleanedAll = [];
+
   const csvText = await fetchSheetCsv(targetUrl, targetGid);
   const parsedRows = parseCsv(csvText);
 
@@ -515,32 +526,48 @@ async function executeSheetSync({ client_id, sheet_url_or_id, gid, replace_exist
     throw new Error(`Google Sheet returned 0 rows of data. Please verify the sheet is shared and contains valid ad data.`);
   }
 
-  const cleaned = parsedRows.map(r => cleanRecord(r, client.id, client.name));
+  const cleaned = parsedRows.map(r => cleanRecord(r, client.id, client.name, primaryAccName));
+  cleanedAll = cleanedAll.concat(cleaned);
+
+  // Sync Secondary Ad Account Sheet if configured on the client
+  if (client.secondary_sheet_url && !sheet_url_or_id) {
+    try {
+      const secAccName = client.ad_account_2_name || `${client.name} - Ad Account 2`;
+      const csvText2 = await fetchSheetCsv(client.secondary_sheet_url, client.secondary_sheet_gid || "0");
+      const parsedRows2 = parseCsv(csvText2);
+      if (parsedRows2.length > 0) {
+        const cleaned2 = parsedRows2.map(r => cleanRecord(r, client.id, client.name, secAccName));
+        cleanedAll = cleanedAll.concat(cleaned2);
+      }
+    } catch (secErr) {
+      console.warn(`Warning: Could not sync secondary ad account sheet for ${client.name}:`, secErr.message);
+    }
+  }
 
   if (replace_existing) {
-    STORE.records = STORE.records.filter(r => r.client_id !== client.id).concat(cleaned);
+    STORE.records = STORE.records.filter(r => r.client_id !== client.id).concat(cleanedAll);
   } else {
-    STORE.records = STORE.records.concat(cleaned);
+    STORE.records = STORE.records.concat(cleanedAll);
   }
 
   client.last_sheet_synced_at = new Date().toISOString();
   saveStore();
 
-  const totalSpend = cleaned.reduce((s, r) => s + (r.spend || 0), 0);
-  const totalRev = cleaned.reduce((s, r) => s + (r.purchases_conversion_value || 0), 0);
+  const totalSpend = cleanedAll.reduce((s, r) => s + (r.spend || 0), 0);
+  const totalRev = cleanedAll.reduce((s, r) => s + (r.purchases_conversion_value || 0), 0);
   const overallRoas = totalSpend > 0 ? Math.round((totalRev / totalSpend) * 100) / 100 : 0;
 
   return {
     success: true,
     client_id: client.id,
     client_name: client.name,
-    rows_imported: cleaned.length,
-    records_synced: cleaned.length,
+    rows_imported: cleanedAll.length,
+    records_synced: cleanedAll.length,
     total_spend: Math.round(totalSpend * 100) / 100,
     total_revenue: Math.round(totalRev * 100) / 100,
     overall_roas: overallRoas,
     quality_score: 100.0,
-    message: `Successfully ingested and cleaned ${cleaned.length} records for ${client.name}!`
+    message: `Successfully ingested and cleaned ${cleanedAll.length} records for ${client.name}!`
   };
 }
 
@@ -843,6 +870,19 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { success: true, message: "Logged out successfully." });
   }
 
+  // Helper: Strip data source URLs & credentials for non-super admins
+  function sanitizeClientForUser(client, user) {
+    if (!client) return client;
+    if (user && user.role === 'admin') return client;
+    const clone = { ...client };
+    delete clone.google_sheet_url;
+    delete clone.google_sheet_gid;
+    delete clone.secondary_sheet_url;
+    delete clone.secondary_sheet_gid;
+    delete clone.credentials;
+    return clone;
+  }
+
   // Clients: List & Add
   if (pathname === '/api/clients' && req.method === 'GET') {
     const user = getAuthUser(req);
@@ -850,12 +890,12 @@ const server = http.createServer(async (req, res) => {
     if (user && user.role !== 'admin' && !user.assigned_client_ids.includes('*')) {
       list = list.filter(c => user.assigned_client_ids.includes(c.id));
     }
-    return sendJson(res, 200, list);
+    return sendJson(res, 200, list.map(c => sanitizeClientForUser(c, user)));
   }
 
   if (pathname === '/api/clients' && req.method === 'POST') {
     const user = getAuthUser(req);
-    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Admin privileges required." });
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required to create clients." });
     const body = await parseBody(req);
     const newClient = {
       id: body.id || `client_${Date.now()}`,
@@ -864,8 +904,13 @@ const server = http.createServer(async (req, res) => {
       industry: body.industry || "",
       currency: body.currency || "INR",
       is_active: true,
+      ad_account_1_name: body.ad_account_1_name || "Primary Ad Account",
       google_sheet_url: body.google_sheet_url || "",
       google_sheet_gid: body.google_sheet_gid || "0",
+      ad_account_2_name: body.ad_account_2_name || "",
+      secondary_sheet_url: body.secondary_sheet_url || "",
+      secondary_sheet_gid: body.secondary_sheet_gid || "0",
+      targets: body.targets || {},
       last_sheet_synced_at: null,
       created_at: new Date().toISOString()
     };
@@ -874,9 +919,19 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, newClient);
   }
 
-  // Client Update / Delete
+  // Client Details / Update / Delete
   const clientMatch = pathname.match(/^\/api\/clients\/([a-zA-Z0-9_-]+)$/);
+  if (clientMatch && req.method === 'GET') {
+    const user = getAuthUser(req);
+    const clientId = clientMatch[1];
+    const client = STORE.clients.find(c => c.id === clientId);
+    if (!client) return sendJson(res, 404, { detail: "Client not found." });
+    return sendJson(res, 200, sanitizeClientForUser(client, user));
+  }
+
   if (clientMatch && req.method === 'PUT') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required to update clients." });
     const clientId = clientMatch[1];
     const body = await parseBody(req);
     const client = STORE.clients.find(c => c.id === clientId);
@@ -887,6 +942,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (clientMatch && req.method === 'DELETE') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required to delete clients." });
     const clientId = clientMatch[1];
     STORE.clients = STORE.clients.filter(c => c.id !== clientId);
     STORE.records = STORE.records.filter(r => r.client_id !== clientId);
@@ -897,18 +954,51 @@ const server = http.createServer(async (req, res) => {
   // Client Sheet Config
   const sheetConfigMatch = pathname.match(/^\/api\/clients\/([a-zA-Z0-9_-]+)\/sheet-config$/);
   if (sheetConfigMatch && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required to configure data source." });
     const clientId = sheetConfigMatch[1];
     const body = await parseBody(req);
     const client = STORE.clients.find(c => c.id === clientId);
     if (!client) return sendJson(res, 404, { detail: "Client not found." });
-    client.google_sheet_url = body.google_sheet_url || client.google_sheet_url;
-    client.google_sheet_gid = body.google_sheet_gid || client.google_sheet_gid;
+    if (body.google_sheet_url !== undefined) client.google_sheet_url = body.google_sheet_url;
+    if (body.google_sheet_gid !== undefined) client.google_sheet_gid = body.google_sheet_gid;
+    if (body.ad_account_1_name !== undefined) client.ad_account_1_name = body.ad_account_1_name;
+    if (body.ad_account_2_name !== undefined) client.ad_account_2_name = body.ad_account_2_name;
+    if (body.secondary_sheet_url !== undefined) client.secondary_sheet_url = body.secondary_sheet_url;
+    if (body.secondary_sheet_gid !== undefined) client.secondary_sheet_gid = body.secondary_sheet_gid;
+    if (body.name !== undefined) client.name = body.name;
+    if (body.website !== undefined) client.website = body.website;
+    if (body.currency !== undefined) client.currency = body.currency;
     saveStore();
-    return sendJson(res, 200, { success: true, client });
+    return sendJson(res, 200, { success: true, client: sanitizeClientForUser(client, user) });
+  }
+
+  // Client Targets (/api/clients/:id/targets)
+  const targetsMatch = pathname.match(/^\/api\/clients\/([a-zA-Z0-9_-]+)\/targets$/);
+  if (targetsMatch && req.method === 'GET') {
+    const clientId = targetsMatch[1];
+    const client = STORE.clients.find(c => c.id === clientId);
+    if (!client) return sendJson(res, 404, { detail: "Client not found." });
+    return sendJson(res, 200, client.targets || {});
+  }
+  if (targetsMatch && req.method === 'POST') {
+    const user = getAuthUser(req);
+    const clientId = targetsMatch[1];
+    const client = STORE.clients.find(c => c.id === clientId);
+    if (!client) return sendJson(res, 404, { detail: "Client not found." });
+    if (user && user.role !== 'admin' && !user.assigned_client_ids.includes('*') && !user.assigned_client_ids.includes(clientId)) {
+      return sendJson(res, 403, { detail: "Permission denied to set targets for this client." });
+    }
+    const body = await parseBody(req);
+    client.targets = Object.assign(client.targets || {}, body);
+    saveStore();
+    return sendJson(res, 200, { success: true, targets: client.targets });
   }
 
   // Google Sheets Direct Sync (/api/sheets/sync)
   if (pathname === '/api/sheets/sync' && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required to sync data source." });
     const body = await parseBody(req);
     try {
       const result = await executeSheetSync({
@@ -927,6 +1017,8 @@ const server = http.createServer(async (req, res) => {
   // Client Sheet Sync (/api/clients/:id/sync-sheet)
   const syncSheetMatch = pathname.match(/^\/api\/clients\/([a-zA-Z0-9_-]+)\/sync-sheet$/);
   if (syncSheetMatch && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required to sync data source." });
     const clientId = syncSheetMatch[1];
     try {
       const result = await executeSheetSync({ client_id: clientId, replace_existing: true });
@@ -940,6 +1032,8 @@ const server = http.createServer(async (req, res) => {
   // Client Clear Data
   const clearDataMatch = pathname.match(/^\/api\/clients\/([a-zA-Z0-9_-]+)\/clear-data$/);
   if (clearDataMatch && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required to clear data." });
     const clientId = clearDataMatch[1];
     const beforeCount = STORE.records.length;
     STORE.records = STORE.records.filter(r => r.client_id !== clientId);
@@ -1040,7 +1134,8 @@ const server = http.createServer(async (req, res) => {
   // Analytics: Summary
   if (pathname === '/api/data/summary' && req.method === 'GET') {
     const clientId = query.client_id || (STORE.clients[0] ? STORE.clients[0].id : "");
-    const summary = computePerformanceSummary(clientId, query.start_date, query.end_date, query.timeframe || "day");
+    const accountName = query.account_name || query.ad_account || query.account_id || "";
+    const summary = computePerformanceSummary(clientId, query.start_date, query.end_date, query.timeframe || "day", accountName);
     return sendJson(res, 200, summary);
   }
 
@@ -1048,7 +1143,8 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/data/nomenclature/weekly' && req.method === 'GET') {
     const dimension = query.dimension || "category";
     const clientId = query.client_id || (STORE.clients[0] ? STORE.clients[0].id : "");
-    const table = computeNomenclatureTable(dimension, clientId, query.start_date, query.end_date);
+    const accountName = query.account_name || query.ad_account || query.account_id || "";
+    const table = computeNomenclatureTable(dimension, clientId, query.start_date, query.end_date, accountName);
     return sendJson(res, 200, table);
   }
 
@@ -1059,6 +1155,9 @@ const server = http.createServer(async (req, res) => {
     if (clientId) filtered = filtered.filter(r => r.client_id === clientId);
     if (query.start_date) filtered = filtered.filter(r => r.date >= query.start_date);
     if (query.end_date) filtered = filtered.filter(r => r.date <= query.end_date);
+    if (query.account_name && query.account_name !== "all") {
+      filtered = filtered.filter(r => (r.account_name || '').toLowerCase() === query.account_name.toLowerCase() || (r.account_id || '').toLowerCase() === query.account_name.toLowerCase());
+    }
     if (query.platform) filtered = filtered.filter(r => r.platform.toLowerCase() === query.platform.toLowerCase());
 
     const limit = parseInt(query.limit || '50', 10);
@@ -1242,6 +1341,8 @@ const server = http.createServer(async (req, res) => {
 
   // Sync Run Pipeline (/api/sync/run)
   if (pathname === '/api/sync/run' && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required to run pipeline." });
     const body = await parseBody(req);
     const targetClientId = body.client_id || (STORE.clients[0] ? STORE.clients[0].id : null);
     try {
@@ -1265,6 +1366,8 @@ const server = http.createServer(async (req, res) => {
 
   // Ad Connectors Test (/api/connectors/test)
   if (pathname === '/api/connectors/test' && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required." });
     const body = await parseBody(req);
     return sendJson(res, 200, {
       success: true,
@@ -1275,18 +1378,26 @@ const server = http.createServer(async (req, res) => {
 
   // BigQuery & Looker
   if (pathname === '/api/bigquery/config') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required." });
     return sendJson(res, 200, { project_id: "", dataset_id: "tgm_reporting", table_name: "cleaned_records_v2", is_configured: false });
   }
 
   if (pathname === '/api/bigquery/test' && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required." });
     return sendJson(res, 200, { success: true, message: "BigQuery connection successful! Dataset 'tgm_reporting' verified." });
   }
 
   if (pathname === '/api/bigquery/deploy' && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required." });
     return sendJson(res, 200, { success: true, dataset: "tgm_reporting.cleaned_records_v2" });
   }
 
   if (pathname === '/api/data/clear-demo' && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required." });
     const sunya = STORE.clients.find(c => c.name === "The Sunya");
     const sunyaId = sunya ? sunya.id : null;
     const beforeCount = STORE.records.length;
@@ -1303,6 +1414,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/api/looker/embed-url' && req.method === 'POST') {
+    const user = getAuthUser(req);
+    if (user && user.role !== 'admin') return sendJson(res, 403, { detail: "Super Admin privileges required." });
     const body = await parseBody(req);
     STORE.settings.looker_embed_url = body.embed_url || "";
     saveStore();
@@ -1331,11 +1444,30 @@ function getWeekPeriod(dateStr) {
   return `${year}-W${String(weekNumber).padStart(2, '0')}`;
 }
 
-function computePerformanceSummary(clientId, startDate, endDate, timeframe = "day") {
+function computePerformanceSummary(clientId, startDate, endDate, timeframe = "day", accountName = "") {
   let records = STORE.records;
   if (clientId) records = records.filter(r => r.client_id === clientId);
   if (startDate) records = records.filter(r => r.date >= startDate);
   if (endDate) records = records.filter(r => r.date <= endDate);
+  if (accountName && accountName !== "all") {
+    records = records.filter(r => (r.account_name || '').toLowerCase() === accountName.toLowerCase() || (r.account_id || '').toLowerCase() === accountName.toLowerCase());
+  }
+
+  // Discover available ad accounts for this client
+  const clientRecords = clientId ? STORE.records.filter(r => r.client_id === clientId) : STORE.records;
+  const adAccountSet = new Set();
+  clientRecords.forEach(r => {
+    if (r.account_name) adAccountSet.add(r.account_name);
+  });
+  const clientObj = STORE.clients.find(c => c.id === clientId);
+  if (clientObj) {
+    if (clientObj.ad_account_1_name) adAccountSet.add(clientObj.ad_account_1_name);
+    if (clientObj.ad_account_2_name) adAccountSet.add(clientObj.ad_account_2_name);
+    if (Array.isArray(clientObj.ad_accounts)) {
+      clientObj.ad_accounts.forEach(a => { if (a && a.name) adAccountSet.add(a.name); });
+    }
+  }
+  const available_ad_accounts = Array.from(adAccountSet);
 
   const totals = records.reduce((acc, r) => {
     acc.spend += r.spend || 0;
@@ -1421,6 +1553,90 @@ function computePerformanceSummary(clientId, startDate, endDate, timeframe = "da
     cpm: cpm
   };
 
+  // Compute Previous Period for Up/Down Trends
+  let prevSummary = null;
+  if (startDate && endDate) {
+    try {
+      const startD = new Date(startDate);
+      const endD = new Date(endDate);
+      const diffMs = endD.getTime() - startD.getTime();
+      const diffDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+
+      const prevEndD = new Date(startD);
+      prevEndD.setDate(prevEndD.getDate() - 1);
+      const prevStartD = new Date(prevEndD);
+      prevStartD.setDate(prevStartD.getDate() - diffDays + 1);
+
+      const prevStartStr = prevStartD.toISOString().split('T')[0];
+      const prevEndStr = prevEndD.toISOString().split('T')[0];
+
+      let prevRecords = STORE.records;
+      if (clientId) prevRecords = prevRecords.filter(r => r.client_id === clientId);
+      if (accountName && accountName !== "all") {
+        prevRecords = prevRecords.filter(r => (r.account_name || '').toLowerCase() === accountName.toLowerCase() || (r.account_id || '').toLowerCase() === accountName.toLowerCase());
+      }
+      prevRecords = prevRecords.filter(r => r.date >= prevStartStr && r.date <= prevEndStr);
+
+      const prevTotals = prevRecords.reduce((acc, r) => {
+        acc.spend += r.spend || 0;
+        acc.revenue += r.purchases_conversion_value || 0;
+        acc.purchases += r.purchases || 0;
+        acc.impressions += r.impressions || 0;
+        acc.link_clicks += r.link_clicks || 0;
+        acc.landing_page_views += r.landing_page_views || 0;
+        acc.reach += r.reach || 0;
+        return acc;
+      }, { spend: 0, revenue: 0, purchases: 0, impressions: 0, link_clicks: 0, landing_page_views: 0, reach: 0 });
+
+      const pSpend = prevTotals.spend;
+      const pRev = prevTotals.revenue;
+      const pPurch = prevTotals.purchases;
+      const pRoas = pSpend > 0 ? pRev / pSpend : 0;
+      const pCpa = pPurch > 0 ? pSpend / pPurch : 0;
+      const pCtr = prevTotals.impressions > 0 ? (prevTotals.link_clicks / prevTotals.impressions) * 100 : 0;
+      const pCpc = prevTotals.link_clicks > 0 ? pSpend / prevTotals.link_clicks : 0;
+      const pCostLpv = prevTotals.landing_page_views > 0 ? pSpend / prevTotals.landing_page_views : 0;
+      const pPurchRateLpv = prevTotals.landing_page_views > 0 ? (pPurch / prevTotals.landing_page_views) * 100 : 0;
+
+      function calcChange(curr, prev) {
+        if (!prev || prev === 0) return curr > 0 ? 100 : 0;
+        return Math.round(((curr - prev) / prev) * 1000) / 10;
+      }
+
+      prevSummary = {
+        prev_start_date: prevStartStr,
+        prev_end_date: prevEndStr,
+        diff_days: diffDays,
+        spend: Math.round(pSpend * 100) / 100,
+        revenue: Math.round(pRev * 100) / 100,
+        roas: Math.round(pRoas * 100) / 100,
+        cpa: Math.round(pCpa * 100) / 100,
+        purchases: pPurch,
+        impressions: prevTotals.impressions,
+        reach: prevTotals.reach,
+        link_clicks: prevTotals.link_clicks,
+        landing_page_views: prevTotals.landing_page_views,
+        changes: {
+          spend_pct: calcChange(spend, pSpend),
+          revenue_pct: calcChange(rev, pRev),
+          roas_pct: calcChange(purchase_roas, pRoas),
+          cpa_pct: calcChange(cost_per_purchase, pCpa),
+          purchases_pct: calcChange(purchases, pPurch),
+          impressions_pct: calcChange(impr, prevTotals.impressions),
+          reach_pct: calcChange(reach, prevTotals.reach),
+          link_clicks_pct: calcChange(clicks, prevTotals.link_clicks),
+          lpv_pct: calcChange(lpv, prevTotals.landing_page_views),
+          ctr_pct: calcChange(ctr, pCtr),
+          cpc_pct: calcChange(cpc, pCpc),
+          cost_per_lpv_pct: calcChange(cost_per_lpv, pCostLpv),
+          purchase_rate_per_lpv_pct: calcChange(purchase_rate_per_lpv, pPurchRateLpv)
+        }
+      };
+    } catch (e) {
+      console.error('Error computing previous period:', e);
+    }
+  }
+
   // Group by Date/Bucket for Trends
   const trendMap = {};
   records.forEach(r => {
@@ -1442,7 +1658,11 @@ function computePerformanceSummary(clientId, startDate, endDate, timeframe = "da
         impressions: 0,
         link_clicks: 0,
         clicks: 0,
-        reach: 0
+        reach: 0,
+        landing_page_views: 0,
+        adds_to_cart: 0,
+        checkouts_initiated: 0,
+        video_plays_3s: 0
       };
     }
     trendMap[key].spend += r.spend || 0;
@@ -1453,24 +1673,60 @@ function computePerformanceSummary(clientId, startDate, endDate, timeframe = "da
     trendMap[key].link_clicks += r.link_clicks || 0;
     trendMap[key].clicks += r.link_clicks || 0;
     trendMap[key].reach += r.reach || 0;
+    trendMap[key].landing_page_views += r.landing_page_views || 0;
+    trendMap[key].adds_to_cart += r.adds_to_cart || 0;
+    trendMap[key].checkouts_initiated += r.checkouts_initiated || 0;
+    trendMap[key].video_plays_3s += r.video_plays_3s || 0;
   });
 
-  const time_trends = Object.values(trendMap).sort((a, b) => a.date.localeCompare(b.date)).map(d => ({
-    period: d.period,
-    date: d.date,
-    time_bucket: d.time_bucket,
-    spend: Math.round(d.spend * 100) / 100,
-    revenue: Math.round(d.revenue * 100) / 100,
-    conversion_value: Math.round(d.revenue * 100) / 100,
-    purchases: d.purchases,
-    purchase_roas: d.spend > 0 ? Math.round((d.revenue / d.spend) * 100) / 100 : 0,
-    roas: d.spend > 0 ? Math.round((d.revenue / d.spend) * 100) / 100 : 0,
-    cpa: d.purchases > 0 ? Math.round((d.spend / d.purchases) * 100) / 100 : 0,
-    impressions: d.impressions,
-    clicks: d.link_clicks,
-    link_clicks: d.link_clicks,
-    reach: d.reach
-  }));
+  const time_trends = Object.values(trendMap).sort((a, b) => a.date.localeCompare(b.date)).map(d => {
+    const dSpend = Math.round(d.spend * 100) / 100;
+    const dRev = Math.round(d.revenue * 100) / 100;
+    const dPurch = d.purchases;
+    const dLpv = d.landing_page_views || 0;
+    const dClicks = d.link_clicks || 0;
+    const dImpr = d.impressions || 0;
+    const dReach = d.reach || 0;
+    const dAtc = d.adds_to_cart || 0;
+    const dIc = d.checkouts_initiated || 0;
+    const dV3s = d.video_plays_3s || 0;
+
+    const dRoas = dSpend > 0 ? Math.round((dRev / dSpend) * 100) / 100 : 0;
+    const dCpa = dPurch > 0 ? Math.round((dSpend / dPurch) * 100) / 100 : 0;
+    const dCostLpv = dLpv > 0 ? Math.round((dSpend / dLpv) * 100) / 100 : 0;
+    const dCpc = dClicks > 0 ? Math.round((dSpend / dClicks) * 100) / 100 : 0;
+    const dCpm = dImpr > 0 ? Math.round((dSpend / dImpr) * 100000) / 100 : 0;
+    const dCtr = dImpr > 0 ? Math.round((dClicks / dImpr) * 10000) / 100 : 0;
+
+    return {
+      period: d.period,
+      date: d.date,
+      time_bucket: d.time_bucket,
+      spend: dSpend,
+      revenue: dRev,
+      conversion_value: dRev,
+      purchases: dPurch,
+      purchase_roas: dRoas,
+      roas: dRoas,
+      cpa: dCpa,
+      cost_per_purchase: dCpa,
+      impressions: dImpr,
+      reach: dReach,
+      clicks: dClicks,
+      link_clicks: dClicks,
+      landing_page_views: dLpv,
+      lpv: dLpv,
+      cost_per_lpv: dCostLpv,
+      cpc: dCpc,
+      cpm: dCpm,
+      ctr: dCtr,
+      adds_to_cart: dAtc,
+      atc: dAtc,
+      checkouts_initiated: dIc,
+      checkouts: dIc,
+      video_plays_3s: dV3s
+    };
+  });
 
   // Platform Breakdown (by_platform)
   const platformMap = {};
@@ -1533,6 +1789,8 @@ function computePerformanceSummary(clientId, startDate, endDate, timeframe = "da
     };
   }).sort((a, b) => b.spend - a.spend);
 
+  const clientTargets = (clientObj && clientObj.targets) ? clientObj.targets : (STORE.settings?.targets?.[clientId] || {});
+
   return {
     totals: totalsObj,
     kpis: totalsObj,
@@ -1542,15 +1800,23 @@ function computePerformanceSummary(clientId, startDate, endDate, timeframe = "da
     daily_trends: time_trends,
     daily_trend: time_trends,
     trends: time_trends,
-    total_records: records.length
+    total_records: records.length,
+    targets: clientTargets,
+    previous_period: prevSummary,
+    available_ad_accounts: available_ad_accounts,
+    selected_ad_account: accountName || 'all',
+    is_consolidated: (!accountName || accountName === 'all') && (available_ad_accounts.length > 1)
   };
 }
 
-function computeNomenclatureTable(dimension, clientId, startDate, endDate) {
+function computeNomenclatureTable(dimension, clientId, startDate, endDate, accountName = "") {
   let records = STORE.records;
   if (clientId) records = records.filter(r => r.client_id === clientId);
   if (startDate) records = records.filter(r => r.date >= startDate);
   if (endDate) records = records.filter(r => r.date <= endDate);
+  if (accountName && accountName !== "all") {
+    records = records.filter(r => (r.account_name || '').toLowerCase() === accountName.toLowerCase() || (r.account_id || '').toLowerCase() === accountName.toLowerCase());
+  }
 
   const dimFieldMap = {
     category: "category_collection",

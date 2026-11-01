@@ -2,6 +2,10 @@
 let currentClientId = "";
 let clientsList = [];
 let currentUser = null;
+let currentAdAccount = "all";
+let currentDashboardTargets = null;
+let currentDashboardTrends = null;
+let currentChartMetric = "spend_revenue";
 
 // API Client Helper with Session Token Injection
 async function api(endpoint, options = {}) {
@@ -98,6 +102,14 @@ function setupNavigation() {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-tab');
       
+      // Strict Super Admin Access Gate for Data Sources & Settings
+      if (['tab-connectors', 'tab-bigquery', 'tab-data', 'tab-team'].includes(targetId)) {
+        if (currentUser && currentUser.role !== 'admin') {
+          showToast('Access restricted: Data source & backend configuration requires Super Admin authorization.', 'warning');
+          return;
+        }
+      }
+
       buttons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
@@ -241,26 +253,41 @@ function renderClientsTab() {
     const roasBadge = parseFloat(roas) >= 2.0 ? 'tier-high' : (parseFloat(roas) >= 1.0 ? 'tier-mid' : 'tier-low');
     const isAdmin = currentUser && currentUser.role === 'admin';
 
-    const sheetSectionHtml = c.google_sheet_url
-      ? `
-        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; padding: 0.5rem 0.65rem; margin-bottom: 0.85rem; font-size: 0.74rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-            <span style="color: var(--accent-emerald-light); font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
-              <span>📊</span> Dedicated Sheet Linked
-            </span>
-            <a href="${c.google_sheet_url}" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.7rem; font-weight: 600;">
-              Open Sheet &rarr;
-            </a>
+    const sheetSectionHtml = isAdmin
+      ? (c.google_sheet_url
+        ? `
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; padding: 0.5rem 0.65rem; margin-bottom: 0.85rem; font-size: 0.74rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+              <span style="color: var(--accent-emerald-light); font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                <span>📊</span> Dedicated Sheet Linked
+              </span>
+              <a href="${c.google_sheet_url}" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.7rem; font-weight: 600;">
+                Open Sheet &rarr;
+              </a>
+            </div>
+            <div style="color: var(--text-muted); font-size: 0.68rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+              GID: <strong style="color: #cbd5e1;">${c.google_sheet_gid || '0'}</strong> &bull; ${c.last_sheet_synced_at ? `Synced ${formatRelativeTime(c.last_sheet_synced_at)}` : 'Ready to sync'}
+            </div>
+            ${c.secondary_sheet_url ? `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px solid rgba(255,255,255,0.06);">
+              <span style="color: #38bdf8; font-size: 0.68rem; font-weight: 600;">📁 Acc 2: ${c.ad_account_2_name || 'Ad Account 2'}</span>
+              <a href="${c.secondary_sheet_url}" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.68rem;">Open &rarr;</a>
+            </div>
+            ` : ''}
           </div>
-          <div style="color: var(--text-muted); font-size: 0.68rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-            GID: <strong style="color: #cbd5e1;">${c.google_sheet_gid || '0'}</strong> &bull; ${c.last_sheet_synced_at ? `Synced ${formatRelativeTime(c.last_sheet_synced_at)}` : 'Ready to sync'}
+        `
+        : `
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 0.45rem 0.65rem; margin-bottom: 0.85rem; font-size: 0.74rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #fbbf24; font-weight: 600;">⚠️ No Sheet Linked</span>
+            <button class="btn btn-secondary btn-sm" onclick="openEditClientModal('${c.id}')" style="padding: 0.2rem 0.5rem; font-size: 0.68rem;">+ Link Sheet</button>
           </div>
-        </div>
-      `
+        `)
       : `
-        <div style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 0.45rem 0.65rem; margin-bottom: 0.85rem; font-size: 0.74rem; display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: #fbbf24; font-weight: 600;">⚠️ No Sheet Linked</span>
-          <button class="btn btn-secondary btn-sm" onclick="openEditClientModal('${c.id}')" style="padding: 0.2rem 0.5rem; font-size: 0.68rem;">+ Link Sheet</button>
+        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 0.5rem 0.65rem; margin-bottom: 0.85rem; font-size: 0.74rem;">
+          <div style="color: var(--text-muted); font-size: 0.7rem; display: flex; align-items: center; justify-content: space-between;">
+            <span>🔒 Data Source: Managed by Super Admin</span>
+            <span style="color: #cbd5e1;">${c.last_sheet_synced_at ? `Synced ${formatRelativeTime(c.last_sheet_synced_at)}` : 'Live'}</span>
+          </div>
         </div>
       `;
 
@@ -307,13 +334,15 @@ function renderClientsTab() {
         <button class="btn btn-secondary btn-sm" onclick="openSharePortalModal('${c.id}', '${c.name.replace(/'/g, "\\'")}')" title="Share Real-Time Live Dashboard with Client (Zero Login)" style="border-color: rgba(16, 185, 129, 0.4); color: var(--accent-emerald-light); padding: 0.35rem 0.5rem;">
           Portal
         </button>
-        <button class="btn btn-secondary btn-sm" id="btn-sync-card-${c.id}" onclick="syncClientSheetDirectly('${c.id}', this)" title="Sync this client's Google Sheet directly" style="color: var(--accent-cyan); padding: 0.35rem 0.5rem;">
-          Sync Sheet
-        </button>
-        <button class="btn btn-secondary btn-sm" onclick="openEditClientModal('${c.id}')" title="Configure Google Sheet & Client Details" style="padding: 0.35rem 0.5rem;">
-          Configure
-        </button>
-        ${isAdmin ? `<button class="btn btn-outline btn-sm" onclick="handleDeleteClient('${c.id}')" title="Delete Client" style="color: var(--tgm-crimson); padding: 0.35rem 0.5rem;">&#128465;</button>` : ''}
+        ${isAdmin ? `
+          <button class="btn btn-secondary btn-sm" id="btn-sync-card-${c.id}" onclick="syncClientSheetDirectly('${c.id}', this)" title="Sync this client's Google Sheet directly" style="color: var(--accent-cyan); padding: 0.35rem 0.5rem;">
+            Sync Sheet
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openEditClientModal('${c.id}')" title="Configure Google Sheet & Client Details" style="padding: 0.35rem 0.5rem;">
+            Configure
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="handleDeleteClient('${c.id}')" title="Delete Client" style="color: var(--tgm-crimson); padding: 0.35rem 0.5rem;">&#128465;</button>
+        ` : ''}
       </div>
     `;
     grid.appendChild(card);
@@ -340,6 +369,7 @@ function selectClientAndSwitch(clientId) {
   if (select) {
     select.value = clientId;
     currentClientId = clientId;
+    currentAdAccount = 'all';
     const foundClient = clientsList.find(c => c.id === currentClientId);
     if (foundClient && foundClient.currency) {
       currentCurrency = foundClient.currency;
@@ -522,6 +552,64 @@ function setupDateFilterListeners() {
   });
 }
 
+// Helper: Render Period-over-Period Trend Badge
+function renderTrendBadge(containerId, pct, isLowerBetter = false) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (pct === null || pct === undefined || isNaN(pct)) {
+    el.innerHTML = '';
+    return;
+  }
+  const num = Number(pct);
+  if (Math.abs(num) < 0.05) {
+    el.innerHTML = `<span class="kpi-trend-badge trend-neutral" title="Vs prior matching period">~0%</span>`;
+    return;
+  }
+  const isUp = num > 0;
+  const absFormatted = Math.abs(num).toFixed(1) + '%';
+  let badgeClass = '';
+  let arrow = isUp ? '▲' : '▼';
+  if (isLowerBetter) {
+    badgeClass = isUp ? 'trend-up-bad' : 'trend-down-good';
+  } else {
+    badgeClass = isUp ? 'trend-up-good' : 'trend-down-bad';
+  }
+  const sign = isUp ? '+' : '-';
+  el.innerHTML = `<span class="kpi-trend-badge ${badgeClass}" title="Vs prior equivalent period: ${sign}${absFormatted}">${arrow} ${sign}${absFormatted}</span>`;
+}
+
+// Helper: Render KPI Target Achievement Badge
+function renderTargetBadge(containerId, actualVal, targetVal, isLowerBetter = false, unit = '') {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!targetVal || Number(targetVal) <= 0) {
+    el.innerHTML = '';
+    return;
+  }
+  const actual = Number(actualVal) || 0;
+  const target = Number(targetVal);
+  let isMet = false;
+  let isClose = false;
+
+  if (isLowerBetter) {
+    isMet = actual <= target;
+    isClose = !isMet && actual <= target * 1.15;
+  } else {
+    isMet = actual >= target;
+    isClose = !isMet && actual >= target * 0.85;
+  }
+
+  const formattedTarget = unit === '$' ? formatCurrency(target) : (unit === 'x' ? target.toFixed(2) + 'x' : target + unit);
+
+  if (isMet) {
+    el.innerHTML = `<span class="target-badge met" title="Target: ${formattedTarget}">✓ Target Met (${formattedTarget})</span>`;
+  } else if (isClose) {
+    el.innerHTML = `<span class="target-badge warning" title="Target: ${formattedTarget}">⚡ Near Target (${formattedTarget})</span>`;
+  } else {
+    el.innerHTML = `<span class="target-badge miss" title="Target: ${formattedTarget}">✕ Target: ${formattedTarget}</span>`;
+  }
+}
+
 // Load Executive Dashboard
 async function loadDashboardData() {
   try {
@@ -530,9 +618,55 @@ async function loadDashboardData() {
     params.append('timeframe', currentTimeframe);
     if (currentStartDate) params.append('start_date', currentStartDate);
     if (currentEndDate) params.append('end_date', currentEndDate);
+    if (currentAdAccount && currentAdAccount !== 'all') {
+      params.append('account_name', currentAdAccount);
+    }
 
     const summary = await api(`/api/data/summary?${params.toString()}`);
     const totals = summary.totals || {};
+    const prev = summary.previous_period || {};
+    const targets = summary.targets || {};
+    currentDashboardTargets = targets;
+    currentDashboardTrends = prev;
+
+    // Multi-Account & Consolidated View Handling
+    const availableAccounts = summary.available_ad_accounts || [];
+    const accountSelectWrap = document.getElementById('ad-account-select-wrap');
+    const accountSelect = document.getElementById('global-account-select');
+    const consolidatedBadge = document.getElementById('consolidated-status-badge');
+
+    if (accountSelectWrap && accountSelect) {
+      if (availableAccounts.length > 1) {
+        accountSelectWrap.style.display = 'flex';
+        const prevVal = accountSelect.value || currentAdAccount || 'all';
+        accountSelect.innerHTML = `<option value="all">🌟 Consolidated (${availableAccounts.length} Ad Accounts)</option>`;
+        availableAccounts.forEach(acc => {
+          const opt = document.createElement('option');
+          opt.value = acc;
+          opt.textContent = `📁 ${acc}`;
+          accountSelect.appendChild(opt);
+        });
+        if (availableAccounts.includes(prevVal) || prevVal === 'all') {
+          accountSelect.value = prevVal;
+          currentAdAccount = prevVal;
+        } else {
+          accountSelect.value = 'all';
+          currentAdAccount = 'all';
+        }
+      } else {
+        accountSelectWrap.style.display = 'none';
+        currentAdAccount = 'all';
+      }
+    }
+
+    if (consolidatedBadge) {
+      if (availableAccounts.length > 1 && (currentAdAccount === 'all' || !currentAdAccount)) {
+        consolidatedBadge.style.display = 'inline-flex';
+        consolidatedBadge.textContent = `⚡ Consolidated Multi-Account (${availableAccounts.length} Accounts)`;
+      } else {
+        consolidatedBadge.style.display = 'none';
+      }
+    }
 
     // Update KPI Scorecards - Tier 1
     const totalImprEl = document.getElementById('kpi-total-impressions');
@@ -563,11 +697,26 @@ async function loadDashboardData() {
     document.getElementById('kpi-video-3s-rate').textContent = (totals.video_plays_3s_rate_per_impressions || 0).toFixed(2) + '%';
     document.getElementById('kpi-cost-per-3s').textContent = `Thumbstop \u2022 Cost: ${formatCurrency(totals.cost_per_video_play_3s || 0)}`;
 
+    // Render Trend Badges (▲ / ▼ Period-over-Period)
+    renderTrendBadge('trend-kpi-impressions', prev.impressions_pct, false);
+    renderTrendBadge('trend-kpi-reach', prev.reach_pct, false);
+    renderTrendBadge('trend-kpi-spend', prev.spend_pct, false);
+    renderTrendBadge('trend-kpi-revenue', prev.revenue_pct, false);
+    renderTrendBadge('trend-kpi-roas', prev.roas_pct, false);
+    renderTrendBadge('trend-kpi-cpa', prev.cpa_pct, true); // lower CPA is better!
+    renderTrendBadge('trend-kpi-lpv', prev.lpv_pct, false);
+    renderTrendBadge('trend-kpi-cost-lpv', prev.cost_per_lpv_pct, true); // lower cost is better!
+    renderTrendBadge('trend-kpi-purch-rate', prev.purchases_pct, false);
+
+    // Render KPI Targets
+    renderTargetBadge('target-kpi-roas', totals.purchase_roas, targets.target_roas, false, 'x');
+    renderTargetBadge('target-kpi-cpa', totals.cost_per_purchase, targets.target_cpa, true, '$');
+    renderTargetBadge('target-kpi-spend', totals.total_spend, targets.target_spend, false, '$');
+    renderTargetBadge('target-kpi-revenue', totals.total_conversion_value, targets.target_revenue, false, '$');
+
     // Render Charts
     const trendData = summary.time_trend || summary.daily_trend || [];
-    if (trendData.length > 0) {
-      initDailyTrendChart(trendData, getCurrencySymbol(currentCurrency));
-    }
+    initDailyTrendChart(trendData, getCurrencySymbol(currentCurrency), currentChartMetric, targets);
     if (summary.by_platform && summary.by_platform.length > 0) {
       initPlatformShareChart(summary.by_platform, getCurrencySymbol(currentCurrency));
     }
@@ -648,6 +797,9 @@ async function loadWeeklyNomenclatureData() {
     if (currentClientId) params.append('client_id', currentClientId);
     if (currentStartDate) params.append('start_date', currentStartDate);
     if (currentEndDate) params.append('end_date', currentEndDate);
+    if (currentAdAccount && currentAdAccount !== 'all') {
+      params.append('account_name', currentAdAccount);
+    }
 
     const rows = await api(`/api/data/nomenclature/weekly?${params.toString()}`);
     cachedNomenclatureRows = rows || [];
@@ -733,6 +885,9 @@ async function loadCleanedRecords() {
     if (platform) params.append('platform', platform);
     if (currentStartDate) params.append('start_date', currentStartDate);
     if (currentEndDate) params.append('end_date', currentEndDate);
+    if (currentAdAccount && currentAdAccount !== 'all') {
+      params.append('account_name', currentAdAccount);
+    }
     params.append('limit', '100');
 
     const data = await api(`/api/data/records?${params.toString()}`);
@@ -1064,8 +1219,22 @@ function openEditClientModal(clientId) {
   document.getElementById('edit-client-name').value = client.name;
   document.getElementById('edit-client-website').value = client.website || '';
   document.getElementById('edit-client-currency').value = client.currency || 'INR';
+  
+  const acc1El = document.getElementById('edit-client-account-1');
+  if (acc1El) acc1El.value = client.ad_account_1_name || '';
+
   document.getElementById('edit-client-sheet-url').value = client.google_sheet_url || '';
   document.getElementById('edit-client-sheet-gid').value = client.google_sheet_gid || '0';
+
+  const acc2El = document.getElementById('edit-client-account-2');
+  if (acc2El) acc2El.value = client.ad_account_2_name || '';
+
+  const sheetUrl2El = document.getElementById('edit-client-sheet-url-2');
+  if (sheetUrl2El) sheetUrl2El.value = client.secondary_sheet_url || '';
+
+  const sheetGid2El = document.getElementById('edit-client-sheet-gid-2');
+  if (sheetGid2El) sheetGid2El.value = client.secondary_sheet_gid || '0';
+
   document.getElementById('edit-client-modal-title').textContent = `Configure ${client.name}`;
   document.getElementById('edit-client-modal-subtitle').textContent = `Client ID: ${client.id} • Currency: ${client.currency}`;
 
@@ -1133,8 +1302,12 @@ async function saveClientSheetConfig(clientId, andSync = false) {
   const name = document.getElementById('edit-client-name').value.trim();
   const website = document.getElementById('edit-client-website').value.trim();
   const currency = document.getElementById('edit-client-currency').value;
+  const adAccount1 = document.getElementById('edit-client-account-1')?.value.trim() || '';
   const sheetUrl = document.getElementById('edit-client-sheet-url').value.trim();
   const sheetGid = document.getElementById('edit-client-sheet-gid').value.trim() || '0';
+  const adAccount2 = document.getElementById('edit-client-account-2')?.value.trim() || '';
+  const sheetUrl2 = document.getElementById('edit-client-sheet-url-2')?.value.trim() || '';
+  const sheetGid2 = document.getElementById('edit-client-sheet-gid-2')?.value.trim() || '0';
 
   if (!name) {
     showToast('Client name cannot be empty', 'error');
@@ -1148,8 +1321,12 @@ async function saveClientSheetConfig(clientId, andSync = false) {
       name,
       website,
       currency,
+      ad_account_1_name: adAccount1,
       google_sheet_url: sheetUrl,
-      google_sheet_gid: sheetGid
+      google_sheet_gid: sheetGid,
+      ad_account_2_name: adAccount2,
+      secondary_sheet_url: sheetUrl2,
+      secondary_sheet_gid: sheetGid2
     };
 
     await api(`/api/clients/${clientId}`, {
@@ -1330,6 +1507,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (clientSelect) {
     clientSelect.addEventListener('change', (e) => {
       currentClientId = e.target.value;
+      currentAdAccount = 'all';
       const foundClient = clientsList.find(c => c.id === currentClientId);
       if (foundClient && foundClient.currency) {
         currentCurrency = foundClient.currency;
@@ -1339,6 +1517,101 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       loadDashboardData();
       loadCleanedRecords();
+    });
+  }
+
+  // Multi-Account / Consolidated Ad Account Selector Handler
+  const accountSelect = document.getElementById('global-account-select');
+  if (accountSelect) {
+    accountSelect.addEventListener('change', (e) => {
+      currentAdAccount = e.target.value;
+      loadDashboardData();
+      loadCleanedRecords();
+    });
+  }
+
+  // Chart Metric Selector Handler (Daily Trends)
+  const chartMetricSelect = document.getElementById('chart-metric-select');
+  if (chartMetricSelect) {
+    chartMetricSelect.addEventListener('change', (e) => {
+      currentChartMetric = e.target.value;
+      initDailyTrendChart(null, getCurrencySymbol(currentCurrency), currentChartMetric, currentDashboardTargets);
+    });
+  }
+
+  // Open KPI Targets Modal Handler
+  const openTargetsBtn = document.getElementById('btn-open-targets-modal');
+  if (openTargetsBtn) {
+    openTargetsBtn.addEventListener('click', async () => {
+      if (!currentClientId) {
+        showToast('Please select a specific client account to configure KPI targets', 'warning');
+        return;
+      }
+      try {
+        const data = await api(`/api/clients/${currentClientId}/targets`);
+        const t = data.targets || {};
+        currentDashboardTargets = t;
+
+        const roasInp = document.getElementById('target-input-roas');
+        if (roasInp) roasInp.value = t.target_roas || '';
+
+        const cpaInp = document.getElementById('target-input-cpa');
+        if (cpaInp) cpaInp.value = t.target_cpa || '';
+
+        const spendInp = document.getElementById('target-input-spend');
+        if (spendInp) spendInp.value = t.target_spend || '';
+
+        const revInp = document.getElementById('target-input-revenue');
+        if (revInp) revInp.value = t.target_revenue || '';
+
+        const ctrInp = document.getElementById('target-input-ctr');
+        if (ctrInp) ctrInp.value = t.target_ctr || '';
+
+        const costLpvInp = document.getElementById('target-input-cost-lpv');
+        if (costLpvInp) costLpvInp.value = t.target_cost_per_lpv || '';
+
+        const purchRateInp = document.getElementById('target-input-purch-rate');
+        if (purchRateInp) purchRateInp.value = t.target_purchase_rate || '';
+
+        openModal('modal-kpi-targets');
+      } catch (err) {
+        showToast('Failed to load targets: ' + err.message, 'error');
+      }
+    });
+  }
+
+  // Save KPI Targets Handler
+  const saveTargetsBtn = document.getElementById('btn-save-kpi-targets');
+  if (saveTargetsBtn) {
+    saveTargetsBtn.addEventListener('click', async () => {
+      if (!currentClientId) return;
+      const payload = {
+        target_roas: parseFloat(document.getElementById('target-input-roas')?.value) || 0,
+        target_cpa: parseFloat(document.getElementById('target-input-cpa')?.value) || 0,
+        target_spend: parseFloat(document.getElementById('target-input-spend')?.value) || 0,
+        target_revenue: parseFloat(document.getElementById('target-input-revenue')?.value) || 0,
+        target_ctr: parseFloat(document.getElementById('target-input-ctr')?.value) || 0,
+        target_cost_per_lpv: parseFloat(document.getElementById('target-input-cost-lpv')?.value) || 0,
+        target_purchase_rate: parseFloat(document.getElementById('target-input-purch-rate')?.value) || 0
+      };
+
+      try {
+        saveTargetsBtn.disabled = true;
+        saveTargetsBtn.textContent = 'Saving...';
+        const res = await api(`/api/clients/${currentClientId}/targets`, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        currentDashboardTargets = payload;
+        showToast(res.message || 'KPI Targets saved successfully!', 'success');
+        closeModal('modal-kpi-targets');
+        await loadDashboardData();
+      } catch (err) {
+        showToast('Error saving targets: ' + err.message, 'error');
+      } finally {
+        saveTargetsBtn.disabled = false;
+        saveTargetsBtn.textContent = 'Save KPI Benchmarks';
+      }
     });
   }
 
@@ -1396,8 +1669,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const website = document.getElementById('new-client-website').value.trim();
     const industry = document.getElementById('new-client-industry').value;
     const currency = document.getElementById('new-client-currency').value;
+    const adAccount1 = document.getElementById('new-client-account-1')?.value.trim() || '';
     const sheetUrl = document.getElementById('new-client-sheet-url')?.value.trim() || '';
     const sheetGid = document.getElementById('new-client-sheet-gid')?.value.trim() || '0';
+    const adAccount2 = document.getElementById('new-client-account-2')?.value.trim() || '';
+    const sheetUrl2 = document.getElementById('new-client-sheet-url-2')?.value.trim() || '';
+    const sheetGid2 = document.getElementById('new-client-sheet-gid-2')?.value.trim() || '0';
 
     if (!name) {
       showToast('Please enter a client business name', 'error');
@@ -1410,8 +1687,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       website,
       industry,
       currency,
+      ad_account_1_name: adAccount1,
       google_sheet_url: sheetUrl,
       google_sheet_gid: sheetGid,
+      ad_account_2_name: adAccount2,
+      secondary_sheet_url: sheetUrl2,
+      secondary_sheet_gid: sheetGid2,
       is_active: true
     };
 
@@ -1597,6 +1878,10 @@ function updateHeaderUserProfile(user) {
   const roleEl = document.getElementById('user-role-badge');
   const avatarEl = document.getElementById('user-role-avatar');
   const teamTabBtn = document.getElementById('btn-tab-team');
+  const connectorsTabBtn = document.getElementById('btn-tab-connectors');
+  const bigqueryTabBtn = document.getElementById('btn-tab-bigquery');
+  const dataTabBtn = document.getElementById('btn-tab-data');
+  const syncModalBtn = document.getElementById('btn-open-sync-modal');
   const addClientBtn = document.getElementById('btn-add-client-modal');
   const logoutBtn = document.getElementById('btn-header-logout');
 
@@ -1611,6 +1896,10 @@ function updateHeaderUserProfile(user) {
       avatarEl.style.background = 'rgba(255, 255, 255, 0.15)';
     }
     if (teamTabBtn) teamTabBtn.style.display = 'none';
+    if (connectorsTabBtn) connectorsTabBtn.style.display = 'none';
+    if (bigqueryTabBtn) bigqueryTabBtn.style.display = 'none';
+    if (dataTabBtn) dataTabBtn.style.display = 'none';
+    if (syncModalBtn) syncModalBtn.style.display = 'none';
     if (addClientBtn) addClientBtn.style.display = 'none';
     if (logoutBtn) {
       logoutBtn.innerHTML = `
@@ -1645,17 +1934,21 @@ function updateHeaderUserProfile(user) {
       : 'linear-gradient(135deg, #06b6d4, #6366f1)';
   }
 
-  // Show/Hide Team tab for Admin only
-  if (teamTabBtn) {
-    teamTabBtn.style.display = isAdmin ? 'flex' : 'none';
-    if (!isAdmin && document.getElementById('tab-team')?.classList.contains('active')) {
+  // Strict Super Admin Access Control for Data Sources & Settings
+  if (teamTabBtn) teamTabBtn.style.display = isAdmin ? 'flex' : 'none';
+  if (connectorsTabBtn) connectorsTabBtn.style.display = isAdmin ? 'flex' : 'none';
+  if (bigqueryTabBtn) bigqueryTabBtn.style.display = isAdmin ? 'flex' : 'none';
+  if (dataTabBtn) dataTabBtn.style.display = isAdmin ? 'flex' : 'none';
+  if (syncModalBtn) syncModalBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+  if (addClientBtn) addClientBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+
+  // If a non-admin is currently on an admin-only tab, return to dashboard
+  if (!isAdmin) {
+    const restrictedTabs = ['tab-team', 'tab-connectors', 'tab-bigquery', 'tab-data'];
+    const activeRestricted = restrictedTabs.find(t => document.getElementById(t)?.classList.contains('active'));
+    if (activeRestricted) {
       document.getElementById('btn-tab-dashboard')?.click();
     }
-  }
-
-  // Hide Add Client button for non-admins
-  if (addClientBtn) {
-    addClientBtn.style.display = isAdmin ? 'inline-flex' : 'none';
   }
 }
 

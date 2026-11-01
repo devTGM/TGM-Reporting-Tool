@@ -57,6 +57,16 @@ def init_db():
         cursor.execute("ALTER TABLE clients ADD COLUMN google_sheet_gid TEXT DEFAULT '0'")
     if "last_sheet_synced_at" not in existing_client_cols:
         cursor.execute("ALTER TABLE clients ADD COLUMN last_sheet_synced_at TEXT")
+    if "ad_account_1_name" not in existing_client_cols:
+        cursor.execute("ALTER TABLE clients ADD COLUMN ad_account_1_name TEXT DEFAULT ''")
+    if "ad_account_2_name" not in existing_client_cols:
+        cursor.execute("ALTER TABLE clients ADD COLUMN ad_account_2_name TEXT DEFAULT ''")
+    if "secondary_sheet_url" not in existing_client_cols:
+        cursor.execute("ALTER TABLE clients ADD COLUMN secondary_sheet_url TEXT DEFAULT ''")
+    if "secondary_sheet_gid" not in existing_client_cols:
+        cursor.execute("ALTER TABLE clients ADD COLUMN secondary_sheet_gid TEXT DEFAULT '0'")
+    if "targets_json" not in existing_client_cols:
+        cursor.execute("ALTER TABLE clients ADD COLUMN targets_json TEXT DEFAULT '{}'")
 
     # Seed The Sunya's designated sheet if unset
     cursor.execute("""
@@ -306,11 +316,13 @@ def get_all_clients() -> List[ClientProfile]:
     for r in rows:
         data = dict(r)
         cid = data["id"]
-        creds = json.loads(data.pop("credentials_json") or "{}")
+        creds = json.loads(data.pop("credentials_json", None) or "{}")
+        targets = json.loads(data.pop("targets_json", None) or "{}")
         c_stats = stats_map.get(cid, {})
         clients.append(ClientProfile(
             **data, 
             credentials=creds,
+            targets=targets,
             total_spend=round(c_stats.get("total_spend", 0.0), 2),
             total_revenue=round(c_stats.get("total_revenue", 0.0), 2),
             total_records=c_stats.get("total_records", 0)
@@ -326,8 +338,9 @@ def get_client_by_id(client_id: str) -> Optional[ClientProfile]:
     if not row:
         return None
     data = dict(row)
-    creds = json.loads(data.pop("credentials_json") or "{}")
-    return ClientProfile(**data, credentials=creds)
+    creds = json.loads(data.pop("credentials_json", None) or "{}")
+    targets = json.loads(data.pop("targets_json", None) or "{}")
+    return ClientProfile(**data, credentials=creds, targets=targets)
 
 def save_client(client: ClientProfile) -> ClientProfile:
     conn = get_connection()
@@ -337,9 +350,10 @@ def save_client(client: ClientProfile) -> ClientProfile:
     INSERT INTO clients (
         id, name, website, industry, currency, is_active, 
         google_sheet_url, google_sheet_gid, last_sheet_synced_at,
-        credentials_json, created_at, updated_at
+        ad_account_1_name, ad_account_2_name, secondary_sheet_url, secondary_sheet_gid,
+        targets_json, credentials_json, created_at, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
         name=excluded.name,
         website=excluded.website,
@@ -348,6 +362,11 @@ def save_client(client: ClientProfile) -> ClientProfile:
         is_active=excluded.is_active,
         google_sheet_url=excluded.google_sheet_url,
         google_sheet_gid=excluded.google_sheet_gid,
+        ad_account_1_name=excluded.ad_account_1_name,
+        ad_account_2_name=excluded.ad_account_2_name,
+        secondary_sheet_url=excluded.secondary_sheet_url,
+        secondary_sheet_gid=excluded.secondary_sheet_gid,
+        targets_json=excluded.targets_json,
         last_sheet_synced_at=COALESCE(excluded.last_sheet_synced_at, clients.last_sheet_synced_at),
         credentials_json=excluded.credentials_json,
         updated_at=excluded.updated_at
@@ -361,6 +380,11 @@ def save_client(client: ClientProfile) -> ClientProfile:
         client.google_sheet_url or "",
         client.google_sheet_gid or "0",
         client.last_sheet_synced_at,
+        client.ad_account_1_name or "",
+        client.ad_account_2_name or "",
+        client.secondary_sheet_url or "",
+        client.secondary_sheet_gid or "0",
+        json.dumps(client.targets or {}),
         json.dumps(client.credentials.dict()),
         client.created_at or now,
         now
@@ -528,6 +552,7 @@ def get_cleaned_records(
     funnel: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    account_name: Optional[str] = None,
     limit: int = 100,
     offset: int = 0
 ) -> Dict[str, Any]:
@@ -540,6 +565,9 @@ def get_cleaned_records(
     if client_id:
         query += " AND client_id = ?"
         params.append(client_id)
+    if account_name and account_name != "all":
+        query += " AND (account_name = ? OR account_id = ?)"
+        params.extend([account_name, account_name])
     if platform:
         query += " AND LOWER(platform) = ?"
         params.append(platform.lower())
@@ -575,7 +603,8 @@ def get_performance_summary(
     client_id: Optional[str] = None,
     timeframe: str = "day",  # 'day', 'week', 'month'
     start_date: Optional[str] = None,
-    end_date: Optional[str] = None
+    end_date: Optional[str] = None,
+    account_name: Optional[str] = None
 ) -> Dict[str, Any]:
     conn = get_connection()
     cursor = conn.cursor()
@@ -585,6 +614,9 @@ def get_performance_summary(
     if client_id:
         where_clause += " AND client_id = ?"
         params.append(client_id)
+    if account_name and account_name != "all":
+        where_clause += " AND (account_name = ? OR account_id = ?)"
+        params.extend([account_name, account_name])
     if start_date:
         where_clause += " AND date >= ?"
         params.append(start_date)
@@ -687,25 +719,164 @@ def get_performance_summary(
     cursor.execute(f"""
     SELECT 
         {date_group} as time_bucket,
+        {date_group} as date,
         COALESCE(SUM(spend), 0) as spend,
         COALESCE(SUM(purchases_conversion_value), 0) as conversion_value,
+        COALESCE(SUM(purchases_conversion_value), 0) as revenue,
         COALESCE(SUM(purchases), 0) as purchases,
         COALESCE(SUM(reach), 0) as reach,
         COALESCE(SUM(link_clicks), 0) as clicks,
-        COALESCE(SUM(impressions), 0) as impressions
+        COALESCE(SUM(link_clicks), 0) as link_clicks,
+        COALESCE(SUM(impressions), 0) as impressions,
+        COALESCE(SUM(landing_page_views), 0) as landing_page_views,
+        COALESCE(SUM(landing_page_views), 0) as lpv,
+        COALESCE(SUM(adds_to_cart), 0) as adds_to_cart,
+        COALESCE(SUM(adds_to_cart), 0) as atc,
+        COALESCE(SUM(checkouts_initiated), 0) as checkouts_initiated,
+        COALESCE(SUM(checkouts_initiated), 0) as checkouts,
+        COALESCE(SUM(video_plays_3s), 0) as video_plays_3s
     FROM cleaned_records_v2
     {where_clause}
     GROUP BY 1
     ORDER BY 1 ASC
     LIMIT 60
     """, params)
-    time_trend = [dict(r) for r in cursor.fetchall()]
+    raw_time_trend = [dict(r) for r in cursor.fetchall()]
+    time_trend = []
+    for t in raw_time_trend:
+        t_sp = round(float(t.get("spend", 0.0)), 2)
+        t_rev = round(float(t.get("conversion_value", 0.0)), 2)
+        t_purch = float(t.get("purchases", 0))
+        t_impr = int(t.get("impressions", 0))
+        t_clicks = int(t.get("clicks", 0))
+        t_lpv = int(t.get("landing_page_views", 0))
+        t["spend"] = t_sp
+        t["revenue"] = t_rev
+        t["conversion_value"] = t_rev
+        t["purchase_roas"] = round(t_rev / t_sp, 2) if t_sp > 0 else 0.0
+        t["roas"] = t["purchase_roas"]
+        t["cost_per_purchase"] = round(t_sp / t_purch, 2) if t_purch > 0 else 0.0
+        t["cpa"] = t["cost_per_purchase"]
+        t["cost_per_lpv"] = round(t_sp / t_lpv, 2) if t_lpv > 0 else 0.0
+        t["cpc"] = round(t_sp / t_clicks, 2) if t_clicks > 0 else 0.0
+        t["cpm"] = round((t_sp / t_impr) * 1000, 2) if t_impr > 0 else 0.0
+        t["ctr"] = round((t_clicks / t_impr) * 100, 2) if t_impr > 0 else 0.0
+        time_trend.append(t)
+
+    # Discovered Ad Accounts for Client
+    if client_id:
+        acc_rows = cursor.execute("SELECT DISTINCT account_name FROM cleaned_records_v2 WHERE client_id = ? AND account_name IS NOT NULL AND account_name != ''", (client_id,)).fetchall()
+    else:
+        acc_rows = cursor.execute("SELECT DISTINCT account_name FROM cleaned_records_v2 WHERE account_name IS NOT NULL AND account_name != ''").fetchall()
+    available_ad_accounts = [r[0] for r in acc_rows if r[0]]
+
+    # Period-over-period comparison for Up/Down Trends
+    prev_summary = None
+    if start_date and end_date:
+        try:
+            s_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            e_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            diff_days = max(1, (e_dt - s_dt).days + 1)
+            prev_e_dt = s_dt - timedelta(days=1)
+            prev_s_dt = prev_e_dt - timedelta(days=diff_days - 1)
+            prev_s_str = prev_s_dt.strftime("%Y-%m-%d")
+            prev_e_str = prev_e_dt.strftime("%Y-%m-%d")
+
+            prev_where = "WHERE 1=1"
+            prev_params = []
+            if client_id:
+                prev_where += " AND client_id = ?"
+                prev_params.append(client_id)
+            if account_name and account_name != "all":
+                prev_where += " AND (account_name = ? OR account_id = ?)"
+                prev_params.extend([account_name, account_name])
+            prev_where += " AND date >= ? AND date <= ?"
+            prev_params.extend([prev_s_str, prev_e_str])
+
+            cur_p = conn.cursor()
+            p_row = cur_p.execute(f"""
+            SELECT
+                COALESCE(SUM(spend), 0) as spend,
+                COALESCE(SUM(purchases_conversion_value), 0) as rev,
+                COALESCE(SUM(purchases), 0) as purch,
+                COALESCE(SUM(impressions), 0) as impr,
+                COALESCE(SUM(link_clicks), 0) as clicks,
+                COALESCE(SUM(landing_page_views), 0) as lpv,
+                COALESCE(SUM(reach), 0) as reach
+            FROM cleaned_records_v2
+            {prev_where}
+            """, prev_params).fetchone()
+
+            if p_row:
+                p_spend = float(p_row[0])
+                p_rev = float(p_row[1])
+                p_purch = float(p_row[2])
+                p_impr = int(p_row[3])
+                p_clicks = int(p_row[4])
+                p_lpv = int(p_row[5])
+                p_reach = int(p_row[6])
+                p_roas = round(p_rev / p_spend, 2) if p_spend > 0 else 0.0
+                p_cpa = round(p_spend / p_purch, 2) if p_purch > 0 else 0.0
+
+                def calc_chg(c, p):
+                    if not p: return 100.0 if c > 0 else 0.0
+                    return round(((c - p) / p) * 100, 1)
+
+                curr_roas = round(rev / spend, 2) if spend > 0 else 0.0
+                curr_cpa = round(spend / purchases, 2) if purchases > 0 else 0.0
+                curr_ctr = round((clicks / impr) * 100, 2) if impr > 0 else 0.0
+                curr_cpc = round(spend / clicks, 2) if clicks > 0 else 0.0
+                curr_cost_lpv = round(spend / lpv, 2) if lpv > 0 else 0.0
+
+                prev_summary = {
+                    "prev_start_date": prev_s_str,
+                    "prev_end_date": prev_e_str,
+                    "diff_days": diff_days,
+                    "spend": p_spend,
+                    "revenue": p_rev,
+                    "roas": p_roas,
+                    "cpa": p_cpa,
+                    "purchases": p_purch,
+                    "impressions": p_impr,
+                    "reach": p_reach,
+                    "link_clicks": p_clicks,
+                    "landing_page_views": p_lpv,
+                    "changes": {
+                        "spend_pct": calc_chg(spend, p_spend),
+                        "revenue_pct": calc_chg(rev, p_rev),
+                        "roas_pct": calc_chg(curr_roas, p_roas),
+                        "cpa_pct": calc_chg(curr_cpa, p_cpa),
+                        "purchases_pct": calc_chg(purchases, p_purch),
+                        "impressions_pct": calc_chg(impr, p_impr),
+                        "reach_pct": calc_chg(reach, p_reach),
+                        "link_clicks_pct": calc_chg(clicks, p_clicks),
+                        "lpv_pct": calc_chg(lpv, p_lpv),
+                        "ctr_pct": calc_chg(curr_ctr, round((p_clicks / p_impr) * 100, 2) if p_impr > 0 else 0),
+                        "cpc_pct": calc_chg(curr_cpc, round(p_spend / p_clicks, 2) if p_clicks > 0 else 0),
+                        "cost_per_lpv_pct": calc_chg(curr_cost_lpv, round(p_spend / p_lpv, 2) if p_lpv > 0 else 0)
+                    }
+                }
+        except Exception as e:
+            pass
+
+    client_obj = get_client_by_id(client_id) if client_id else None
+    targets = client_obj.targets if client_obj else {}
 
     conn.close()
     return {
         "totals": totals,
+        "kpis": totals,
         "by_platform": by_platform,
-        "time_trend": time_trend
+        "platform_breakdown": by_platform,
+        "time_trend": time_trend,
+        "daily_trends": time_trend,
+        "daily_trend": time_trend,
+        "trends": time_trend,
+        "targets": targets,
+        "previous_period": prev_summary,
+        "available_ad_accounts": available_ad_accounts,
+        "selected_ad_account": account_name or "all",
+        "is_consolidated": (not account_name or account_name == "all") and len(available_ad_accounts) > 1
     }
 
 def get_weekly_nomenclature_table(

@@ -228,6 +228,16 @@ def remove_team_user(
 
 # ----------------- Client Management (With RBAC Filtering) ----------------- #
 
+def sanitize_client_for_user(c: ClientProfile, user: Optional[Dict[str, Any]]) -> ClientProfile:
+    if user and user.get("role") == "admin":
+        return c
+    copy_c = c.copy()
+    copy_c.google_sheet_url = ""
+    copy_c.google_sheet_gid = ""
+    copy_c.secondary_sheet_url = ""
+    copy_c.secondary_sheet_gid = ""
+    return copy_c
+
 @app.get("/api/clients", response_model=List[ClientProfile])
 def list_clients(
     authorization: Optional[str] = Header(None),
@@ -238,8 +248,8 @@ def list_clients(
     if user and user.get("role") != "admin":
         assigned = user.get("assigned_client_ids", [])
         if "*" not in assigned:
-            return [c for c in all_c if c.id in assigned]
-    return all_c
+            all_c = [c for c in all_c if c.id in assigned]
+    return [sanitize_client_for_user(c, user) for c in all_c]
 
 @app.get("/api/clients/{client_id}", response_model=ClientProfile)
 def get_client(
@@ -255,7 +265,33 @@ def get_client(
     c = get_client_by_id(client_id)
     if not c:
         raise HTTPException(status_code=404, detail="Client not found")
-    return c
+    return sanitize_client_for_user(c, user)
+
+@app.get("/api/clients/{client_id}/targets")
+def get_client_targets(client_id: str):
+    c = get_client_by_id(client_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return c.targets or {}
+
+@app.post("/api/clients/{client_id}/targets")
+def set_client_targets(
+    client_id: str,
+    targets: Dict[str, Any],
+    authorization: Optional[str] = Header(None),
+    x_session_token: Optional[str] = Header(None)
+):
+    user = get_current_user_optional(authorization, x_session_token)
+    if user and user.get("role") != "admin":
+        assigned = user.get("assigned_client_ids", [])
+        if "*" not in assigned and client_id not in assigned:
+            raise HTTPException(status_code=403, detail="Permission denied to set targets.")
+    c = get_client_by_id(client_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Client not found")
+    c.targets = targets
+    save_client(c)
+    return {"success": True, "targets": c.targets}
 
 @app.post("/api/clients", response_model=ClientProfile)
 def create_or_update_client(
@@ -281,8 +317,15 @@ def update_client_profile(
     return save_client(updated)
 
 class ClientSheetConfigRequest(BaseModel):
-    google_sheet_url: str
+    google_sheet_url: Optional[str] = ""
     google_sheet_gid: Optional[str] = "0"
+    ad_account_1_name: Optional[str] = ""
+    ad_account_2_name: Optional[str] = ""
+    secondary_sheet_url: Optional[str] = ""
+    secondary_sheet_gid: Optional[str] = "0"
+    name: Optional[str] = None
+    website: Optional[str] = None
+    currency: Optional[str] = None
 
 @app.post("/api/clients/{client_id}/sheet-config")
 def update_client_sheet_config(
@@ -295,8 +338,24 @@ def update_client_sheet_config(
     client = get_client_by_id(client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
-    client.google_sheet_url = req.google_sheet_url.strip()
-    client.google_sheet_gid = (req.google_sheet_gid or "0").strip()
+    if req.google_sheet_url is not None:
+        client.google_sheet_url = req.google_sheet_url.strip()
+    if req.google_sheet_gid is not None:
+        client.google_sheet_gid = (req.google_sheet_gid or "0").strip()
+    if req.ad_account_1_name is not None:
+        client.ad_account_1_name = req.ad_account_1_name.strip()
+    if req.ad_account_2_name is not None:
+        client.ad_account_2_name = req.ad_account_2_name.strip()
+    if req.secondary_sheet_url is not None:
+        client.secondary_sheet_url = req.secondary_sheet_url.strip()
+    if req.secondary_sheet_gid is not None:
+        client.secondary_sheet_gid = (req.secondary_sheet_gid or "0").strip()
+    if req.name:
+        client.name = req.name
+    if req.website:
+        client.website = req.website
+    if req.currency:
+        client.currency = req.currency
     save_client(client)
     return {
         "success": True,
@@ -526,6 +585,7 @@ def query_records(
     funnel: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    account_name: Optional[str] = None,
     limit: int = Query(50, le=500),
     offset: int = 0,
     authorization: Optional[str] = Header(None),
@@ -540,6 +600,7 @@ def query_records(
         funnel=funnel,
         start_date=start_date,
         end_date=end_date,
+        account_name=account_name,
         limit=limit,
         offset=offset
     )
@@ -550,6 +611,7 @@ def get_summary(
     timeframe: str = "day",
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    account_name: Optional[str] = None,
     authorization: Optional[str] = Header(None),
     x_session_token: Optional[str] = Header(None)
 ):
@@ -559,7 +621,8 @@ def get_summary(
         client_id=scoped_client_id,
         timeframe=timeframe,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        account_name=account_name
     )
 
 @app.get("/api/data/nomenclature/weekly")
