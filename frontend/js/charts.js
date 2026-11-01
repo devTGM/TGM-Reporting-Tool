@@ -10,6 +10,34 @@ let currentTrendMetric = 'spend_vs_revenue';
 let currentTrendDailyData = [];
 let currentTrendCurrency = '₹';
 let currentTrendTargets = {};
+let currentPlatformShareData = null;
+let currentPlatformShareCurrency = '₹';
+
+function getThemeChartColors() {
+  const theme = document.documentElement.getAttribute('data-theme');
+  const isLight = theme === 'light' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+
+  return {
+    isLight: isLight,
+    gridColor: isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+    tickColor: isLight ? '#475569' : '#64748b',
+    legendColor: isLight ? '#334155' : '#94a3b8',
+    tooltipBg: isLight ? 'rgba(15, 23, 42, 0.96)' : 'rgba(14, 7, 32, 0.96)',
+    tooltipTitle: '#ffffff',
+    tooltipBody: '#cbd5e1',
+    tooltipBorder: isLight ? 'rgba(15, 23, 42, 0.25)' : 'rgba(129, 140, 248, 0.35)',
+    doughnutBorder: isLight ? '#ffffff' : '#0e0620'
+  };
+}
+
+function refreshChartsTheme() {
+  if (dailyTrendChartInstance && currentTrendDailyData && currentTrendDailyData.length > 0) {
+    initDailyTrendChart(currentTrendDailyData, currentTrendCurrency, currentTrendMetric, currentTrendTargets);
+  }
+  if (platformShareChartInstance && currentPlatformShareData && currentPlatformShareData.length > 0) {
+    initPlatformShareChart(currentPlatformShareData, currentPlatformShareCurrency);
+  }
+}
 
 const PLATFORM_COLORS = {
   Meta: '#0081fb',
@@ -158,6 +186,7 @@ function initDailyTrendChart(dailyData, currencySym = '₹', metric = null, targ
 
   const canvas = ctx.getContext('2d');
   const datasets = [];
+  const themeColors = getThemeChartColors();
 
   const cfg = METRIC_CONFIGS[activeMetric] || METRIC_CONFIGS.spend_vs_revenue;
   const titleEl = document.getElementById('daily-trend-chart-title');
@@ -320,7 +349,7 @@ function initDailyTrendChart(dailyData, currencySym = '₹', metric = null, targ
           position: 'top',
           align: 'end',
           labels: {
-            color: '#94a3b8',
+            color: themeColors.legendColor,
             font: { family: 'Inter', size: 11, weight: 600 },
             usePointStyle: true,
             pointStyle: 'circle',
@@ -329,12 +358,12 @@ function initDailyTrendChart(dailyData, currencySym = '₹', metric = null, targ
           }
         },
         tooltip: {
-          backgroundColor: 'rgba(14, 7, 32, 0.96)',
-          titleColor: '#ffffff',
+          backgroundColor: themeColors.tooltipBg,
+          titleColor: themeColors.tooltipTitle,
           titleFont: { family: 'Outfit', size: 13, weight: 700 },
-          bodyColor: '#cbd5e1',
+          bodyColor: themeColors.tooltipBody,
           bodyFont: { family: 'Inter', size: 12, weight: 500 },
-          borderColor: 'rgba(129, 140, 248, 0.35)',
+          borderColor: themeColors.tooltipBorder,
           borderWidth: 1,
           padding: 12,
           boxPadding: 6,
@@ -365,22 +394,22 @@ function initDailyTrendChart(dailyData, currencySym = '₹', metric = null, targ
       scales: {
         x: {
           grid: {
-            color: 'rgba(255, 255, 255, 0.03)',
+            color: themeColors.gridColor,
             drawBorder: false
           },
           ticks: {
-            color: '#64748b',
+            color: themeColors.tickColor,
             font: { family: 'Inter', size: 10, weight: 500 },
             maxRotation: 0
           }
         },
         y: {
           grid: {
-            color: 'rgba(255, 255, 255, 0.03)',
+            color: themeColors.gridColor,
             drawBorder: false
           },
           ticks: {
-            color: '#64748b',
+            color: themeColors.tickColor,
             font: { family: 'JetBrains Mono', size: 10 },
             callback: function(value) {
               if (cfg.unit === 'multiplier') return value + 'x';
@@ -405,9 +434,14 @@ function initPlatformShareChart(platformData, currencySym = '₹') {
   const ctx = document.getElementById('chart-platform-share');
   if (!ctx) return;
 
+  currentPlatformShareData = platformData;
+  if (currencySym) currentPlatformShareCurrency = currencySym;
+
   if (platformShareChartInstance) {
     platformShareChartInstance.destroy();
   }
+
+  const themeColors = getThemeChartColors();
 
   const labels = platformData.map(p => p.platform);
   const rawSpend = platformData.map(p => p.spend || 0);
@@ -429,7 +463,7 @@ function initPlatformShareChart(platformData, currencySym = '₹') {
         {
           data: data,
           backgroundColor: colors,
-          borderColor: '#0e0620',
+          borderColor: themeColors.doughnutBorder,
           borderWidth: 3,
           hoverOffset: 6
         }
@@ -447,7 +481,7 @@ function initPlatformShareChart(platformData, currencySym = '₹') {
         legend: {
           position: 'bottom',
           labels: {
-            color: '#94a3b8',
+            color: themeColors.legendColor,
             font: { family: 'Inter', size: 11, weight: 600 },
             usePointStyle: true,
             pointStyle: 'circle',
@@ -456,10 +490,10 @@ function initPlatformShareChart(platformData, currencySym = '₹') {
           }
         },
         tooltip: {
-          backgroundColor: 'rgba(14, 7, 32, 0.96)',
-          titleColor: '#ffffff',
+          backgroundColor: themeColors.tooltipBg,
+          titleColor: themeColors.tooltipTitle,
           titleFont: { family: 'Outfit', size: 13, weight: 700 },
-          bodyColor: '#cbd5e1',
+          bodyColor: themeColors.tooltipBody,
           bodyFont: { family: 'Inter', size: 12 },
           borderColor: isByImpr ? 'rgba(56, 189, 248, 0.35)' : 'rgba(218, 13, 10, 0.35)',
           borderWidth: 1,

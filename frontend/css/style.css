@@ -22,6 +22,12 @@
   --bg-card-hover: rgba(28, 14, 54, 0.90);
   --bg-card-active: #1d0e3a;
   --bg-input: rgba(13, 6, 28, 0.88);
+  --bg-header: rgba(10, 5, 24, 0.94);
+  --bg-nav-tabs: rgba(14, 7, 32, 0.75);
+  --bg-table-header: rgba(14, 7, 32, 0.95);
+  --bg-table-hover: rgba(255, 255, 255, 0.03);
+  --bg-modal: #0f0722;
+  --bg-pill: rgba(255, 255, 255, 0.04);
   
   /* Specular & Glass Borders with TGM Accent Glow */
   --border-color: rgba(255, 255, 255, 0.08);
@@ -93,6 +99,187 @@
 }
 
 /* ==============================================================================
+   LIGHT THEME DESIGN TOKENS
+   Activated by data-theme="light" or OS System preference
+   ============================================================================== */
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Clean Slate & Pure White Backgrounds */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-card-active: #e2e8f0;
+  --bg-input: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.94);
+  --bg-nav-tabs: #f1f5f9;
+  --bg-table-header: #f8fafc;
+  --bg-table-hover: #f1f5f9;
+  --bg-modal: #ffffff;
+  --bg-pill: #f1f5f9;
+
+  /* Specular & Borders */
+  --border-color: rgba(15, 23, 42, 0.10);
+  --border-color-hover: rgba(218, 13, 10, 0.50);
+  --border-glow: rgba(218, 13, 10, 0.20);
+  --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.90);
+
+  /* High-Contrast Typography for Light Mode */
+  --text-primary: #0f172a;       /* Deep slate heading & bold stats */
+  --text-secondary: #334155;     /* Slate body text & metrics */
+  --text-muted: #64748b;         /* Muted category labels & subtitles */
+  --text-dim: #94a3b8;           /* Subtle hints & micro text */
+
+  /* Shadows tuned for Light Mode */
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 14px 28px -4px rgba(15, 23, 42, 0.12), 0 0 15px rgba(218, 13, 10, 0.08);
+}
+
+/* Fallback: if no data-theme attribute is set, adapt to OS system preference */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f1f5f9;
+    --bg-card-active: #e2e8f0;
+    --bg-input: #ffffff;
+    --bg-header: rgba(255, 255, 255, 0.94);
+    --bg-nav-tabs: #f1f5f9;
+    --bg-table-header: #f8fafc;
+    --bg-table-hover: #f1f5f9;
+    --bg-modal: #ffffff;
+    --bg-pill: #f1f5f9;
+
+    --border-color: rgba(15, 23, 42, 0.10);
+    --border-color-hover: rgba(218, 13, 10, 0.50);
+    --border-glow: rgba(218, 13, 10, 0.20);
+    --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.90);
+
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+
+    --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.05);
+    --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.04);
+    --shadow-card-hover: 0 14px 28px -4px rgba(15, 23, 42, 0.12), 0 0 15px rgba(218, 13, 10, 0.08);
+  }
+}
+
+/* ==============================================================================
+   LIGHT THEME COMPONENT OVERRIDES
+   ============================================================================== */
+[data-theme="light"] .brand-title-wrap h1 {
+  background: linear-gradient(135deg, #0f172a 30%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .client-select-wrap {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+}
+
+[data-theme="light"] .client-select-wrap:hover {
+  background: #e2e8f0;
+  border-color: rgba(218, 13, 10, 0.35);
+}
+
+[data-theme="light"] .btn-secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.15);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .btn-secondary:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.28);
+}
+
+[data-theme="light"] .btn-outline {
+  color: #334155;
+  border-color: rgba(15, 23, 42, 0.20);
+}
+
+[data-theme="light"] .btn-outline:hover {
+  color: #0f172a;
+  background: rgba(15, 23, 42, 0.05);
+  border-color: rgba(15, 23, 42, 0.30);
+}
+
+[data-theme="light"] .btn-nomen {
+  background: #ffffff;
+  color: #334155;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .btn-nomen:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.25);
+}
+
+[data-theme="light"] .btn-nomen.active {
+  background: linear-gradient(135deg, var(--tgm-crimson) 0%, var(--tgm-crimson-dark) 100%);
+  color: #ffffff;
+}
+
+[data-theme="light"] .kpi-card,
+[data-theme="light"] .chart-card,
+[data-theme="light"] .table-card,
+[data-theme="light"] .status-card {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.09);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .kpi-card:hover,
+[data-theme="light"] .chart-card:hover,
+[data-theme="light"] .table-card:hover {
+  box-shadow: 0 10px 28px -4px rgba(15, 23, 42, 0.10);
+}
+
+[data-theme="light"] .kpi-sub {
+  color: #64748b;
+}
+
+[data-theme="light"] .metric-info-icon {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.18);
+  color: #475569;
+}
+
+[data-theme="light"] .metric-info-wrap:hover .metric-info-icon {
+  background: var(--accent-indigo);
+  color: #ffffff;
+  border-color: #818cf8;
+}
+
+[data-theme="light"] .date-picker-input::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+[data-theme="light"] .nav-tab-btn {
+  color: #64748b;
+}
+
+[data-theme="light"] .nav-tab-btn:hover {
+  color: #0f172a;
+  background: rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .nav-tab-btn.active {
+  color: #ffffff;
+}
+
+/* ==============================================================================
    RESET & FOUNDATIONS
    ============================================================================== */
 *, *::before, *::after {
@@ -155,7 +342,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 60;
-  background: rgba(10, 5, 24, 0.94);
+  background: var(--bg-header);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--border-color);
@@ -349,7 +536,7 @@ body {
 .select-client {
   background: transparent;
   border: none;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.82rem;
   font-weight: 600;
   outline: none;
@@ -360,8 +547,8 @@ body {
 }
 
 .select-client option {
-  background: #0e0620;
-  color: #ffffff;
+  background: var(--bg-card);
+  color: var(--text-primary);
   padding: 8px;
 }
 
@@ -380,7 +567,7 @@ body {
 .nav-tabs {
   display: flex;
   align-items: center;
-  background: rgba(14, 7, 32, 0.75);
+  background: var(--bg-nav-tabs);
   padding: 0.28rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
@@ -575,7 +762,7 @@ body {
 /* Timeframe Segmented Control */
 .timeframe-toggle {
   display: flex;
-  background: rgba(14, 7, 32, 0.85);
+  background: var(--bg-nav-tabs);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 3px;
@@ -596,7 +783,7 @@ body {
 }
 
 .btn-tf:hover {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .btn-tf.active {
@@ -703,7 +890,7 @@ body {
   font-size: 1.85rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: #ffffff;
+  color: var(--text-primary);
   margin-bottom: 0.35rem;
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -790,7 +977,7 @@ body {
   align-items: center;
   gap: 0.55rem;
   letter-spacing: -0.02em;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .card-badge {
@@ -845,7 +1032,7 @@ table.data-table {
 
 table.data-table th {
   position: relative;
-  background: rgba(14, 7, 32, 0.95);
+  background: var(--bg-table-header);
   backdrop-filter: blur(12px);
   padding: 0.9rem 1.15rem;
   font-size: 0.7rem;
@@ -867,8 +1054,8 @@ table.data-table td {
   position: relative;
   z-index: 1;
   padding: 0.9rem 1.15rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
   white-space: nowrap;
@@ -876,8 +1063,8 @@ table.data-table td {
 }
 
 table.data-table tr:hover td {
-  background: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  background: var(--bg-table-hover);
+  color: var(--text-primary);
 }
 
 /* ROAS Quality Badges */
@@ -1047,12 +1234,12 @@ table.data-table tr:hover td {
 
 .search-input-wrap input {
   width: 100%;
-  background: rgba(14, 7, 32, 0.85);
+  background: var(--bg-input);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.75rem 0.45rem 2.1rem;
   font-size: 0.78rem;
-  color: #ffffff;
+  color: var(--text-primary);
   outline: none;
   transition: var(--transition);
   font-family: inherit;
@@ -1148,12 +1335,12 @@ table.data-table tr:hover td {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 0.62rem 0.85rem;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.82rem;
   font-family: inherit;
   outline: none;
   transition: var(--transition);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -1208,8 +1395,8 @@ table.data-table tr:hover td {
 }
 
 .modal-card {
-  background: #0f0722;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-modal);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 640px;
@@ -1236,7 +1423,7 @@ table.data-table tr:hover td {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .modal-close {
@@ -1627,12 +1814,12 @@ table.data-table tr:hover td {
    ============================================================================== */
 .preset-pills-wrap {
   display: flex;
-  background: rgba(14, 7, 32, 0.85);
+  background: var(--bg-nav-tabs);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 3px;
   gap: 3px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   flex-wrap: wrap;
 }
 
@@ -1650,8 +1837,8 @@ table.data-table tr:hover td {
 }
 
 .btn-preset-date:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  background: var(--bg-table-hover);
 }
 
 .btn-preset-date.active {
@@ -1661,9 +1848,9 @@ table.data-table tr:hover td {
 }
 
 .date-picker-input {
-  background: rgba(10, 4, 22, 0.9) !important;
+  background: var(--bg-input) !important;
   border: 1px solid var(--border-color) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
   border-radius: 6px !important;
 }
 

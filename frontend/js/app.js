@@ -295,7 +295,7 @@ function renderClientsTab() {
       <div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
           <div>
-            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 0.2rem;">${c.name}</h3>
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.2rem;">${c.name}</h3>
             <p style="font-size: 0.75rem; color: var(--text-muted);">${c.industry} &bull; <span style="color: var(--tgm-flame-light); font-weight: 600;">${c.currency} (${getCurrencySymbol(c.currency)})</span></p>
           </div>
           <span class="status-dot ${c.is_active ? 'active' : 'warning'}" title="${c.is_active ? 'Active' : 'Paused'}"></span>
@@ -309,10 +309,10 @@ function renderClientsTab() {
         ${sheetSectionHtml}
 
         <!-- Client Live Metrics Snapshot -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: rgba(0, 0, 0, 0.3); padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: var(--bg-nav-tabs); padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
           <div>
             <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">Spend</div>
-            <div style="font-size: 0.95rem; font-weight: 700; color: #fff;">${formatCurrency(c.total_spend, c.currency)}</div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">${formatCurrency(c.total_spend, c.currency)}</div>
           </div>
           <div>
             <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">Revenue</div>
@@ -766,7 +766,7 @@ function renderPlatformMatrix(platformRows) {
           ${row.platform}
         </span>
       </td>
-      <td style="font-weight: 700; color: #ffffff;">${formatCurrency(row.spend)}</td>
+      <td style="font-weight: 700; color: var(--text-primary);">${formatCurrency(row.spend)}</td>
       <td>${formatNumber(row.impressions)}</td>
       <td>${formatNumber(row.link_clicks || row.clicks)}</td>
       <td>${(row.ctr || 0).toFixed(2)}%</td>
@@ -839,7 +839,7 @@ function renderNomenclatureRows(rows) {
 
     tr.innerHTML = `
       <td style="font-family: var(--font-mono); font-weight: 600; color: var(--text-muted); font-size: 0.76rem;">${r.week_period || 'Weekly'}</td>
-      <td style="font-weight: 700; color: #ffffff; letter-spacing: -0.01em;">${r.nomenclature_value || 'Default'}</td>
+      <td style="font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em;">${r.nomenclature_value || 'Default'}</td>
       <td style="font-weight: 700;">${formatCurrency(r.spend)}</td>
       <td style="font-weight: 700; color: var(--accent-emerald-light);">${formatCurrency(r.purchases_conversion_value)}</td>
       <td style="font-weight: 600;">${formatNumber(r.purchases)}</td>
@@ -919,7 +919,7 @@ async function loadCleanedRecords() {
         <td>${r.date}</td>
         <td>${r.client_name}</td>
         <td><span class="platform-pill ${pClass}" style="font-size: 0.7rem;">${r.platform}</span></td>
-        <td style="font-weight: 600; color: #fff;">${r.campaign_name}</td>
+        <td style="font-weight: 600; color: var(--text-primary);">${r.campaign_name}</td>
         <td style="font-weight: 700;">${formatCurrency(r.spend)}</td>
         <td>${formatNumber(r.impressions)}</td>
         <td>${formatNumber(r.clicks)}</td>
@@ -1463,8 +1463,86 @@ async function saveLookerEmbedUrl() {
   }
 }
 
+// ==============================================================================
+// THEME SWITCHER SYSTEM (System / Light / Dark)
+// Default: System theme (dynamically tracks OS appearance preference)
+// ==============================================================================
+function initThemeSystem() {
+  const currentMode = localStorage.getItem('tgm_theme') || 'system';
+  applyTheme(currentMode);
+
+  // Dynamically listen to OS theme changes if user has 'system' theme selected
+  if (window.matchMedia) {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleOSChange = () => {
+      const mode = localStorage.getItem('tgm_theme') || 'system';
+      if (mode === 'system') {
+        applyTheme('system');
+      }
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleOSChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleOSChange);
+    }
+  }
+
+  const toggleBtn = document.getElementById('btn-theme-toggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', cycleTheme);
+  }
+}
+
+function applyTheme(mode) {
+  const root = document.documentElement;
+  const iconEl = document.getElementById('theme-toggle-icon');
+  const labelEl = document.getElementById('theme-toggle-label');
+  const btn = document.getElementById('btn-theme-toggle');
+
+  if (mode === 'light') {
+    root.setAttribute('data-theme', 'light');
+    if (iconEl) iconEl.textContent = '☀️';
+    if (labelEl) labelEl.textContent = 'Light';
+    if (btn) btn.title = 'Theme: Light (Click to switch to Dark)';
+  } else if (mode === 'dark') {
+    root.setAttribute('data-theme', 'dark');
+    if (iconEl) iconEl.textContent = '🌙';
+    if (labelEl) labelEl.textContent = 'Dark';
+    if (btn) btn.title = 'Theme: Dark (Click to switch to System)';
+  } else {
+    // Mode is 'system'
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    if (iconEl) iconEl.textContent = '🌓';
+    if (labelEl) labelEl.textContent = 'System';
+    if (btn) btn.title = `Theme: System (${prefersDark ? 'Dark' : 'Light'}) (Click to switch to Light)`;
+  }
+
+  localStorage.setItem('tgm_theme', mode);
+
+  // Re-render chart grids & ticks with new palette
+  if (typeof refreshChartsTheme === 'function') {
+    refreshChartsTheme();
+  }
+}
+
+function cycleTheme() {
+  const currentMode = localStorage.getItem('tgm_theme') || 'system';
+  let nextMode = 'system';
+  if (currentMode === 'system') {
+    nextMode = 'light';
+  } else if (currentMode === 'light') {
+    nextMode = 'dark';
+  } else {
+    nextMode = 'system';
+  }
+  applyTheme(nextMode);
+}
+
 // Initialize Application
 document.addEventListener('DOMContentLoaded', async () => {
+  initThemeSystem();
   setupNavigation();
   setupSyncModal();
   setupDateFilterListeners();
@@ -2121,7 +2199,7 @@ async function loadTeamUsers() {
       return `
         <tr>
           <td>
-            <div style="font-weight: 700; color: #fff;">${u.name}</div>
+            <div style="font-weight: 700; color: var(--text-primary);">${u.name}</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">${u.email}</div>
           </td>
           <td>${roleBadge}</td>
@@ -2195,7 +2273,7 @@ function renderClientCheckboxes(checkedIds = []) {
   container.innerHTML = clientsList.map(c => {
     const isChecked = checkedIds.includes('*') || checkedIds.includes(c.id);
     return `
-      <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer; color: #fff;">
+      <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer; color: var(--text-primary);">
         <input type="checkbox" class="user-client-cb" value="${c.id}" ${isChecked ? 'checked' : ''}>
         <span>${c.name} <span style="color: var(--text-muted); font-size: 0.75rem;">(${c.industry} &bull; ${c.currency})</span></span>
       </label>

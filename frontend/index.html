@@ -9,6 +9,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem('tgm_theme') || 'system';
+        if (t === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else if (t === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -58,7 +73,7 @@
           <div class="client-select-wrap" style="padding: 0.25rem 0.6rem; min-width: auto; gap: 0.35rem;">
             <span style="color: var(--accent-emerald); font-weight: 800; font-size: 0.88rem;">₹</span>
             <label for="global-currency-select" style="font-size: 0.72rem; text-transform: uppercase;">Curr:</label>
-            <select id="global-currency-select" class="select-client" style="border: none; background: transparent; padding: 0.15rem 0; font-weight: 700; color: #fff; cursor: pointer;">
+            <select id="global-currency-select" class="select-client" style="border: none; background: transparent; padding: 0.15rem 0; font-weight: 700; color: var(--text-primary); cursor: pointer;">
               <option value="INR" selected>INR (₹)</option>
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
@@ -73,6 +88,12 @@
             <span>Set Targets</span>
           </button>
 
+          <!-- Theme Toggle (System / Light / Dark) -->
+          <button class="btn btn-secondary btn-sm" id="btn-theme-toggle" title="Switch Theme (System, Light, Dark)" style="padding: 0.35rem 0.65rem; display: flex; align-items: center; gap: 0.38rem;">
+            <span id="theme-toggle-icon" style="font-size: 0.88rem; line-height: 1;">🌓</span>
+            <span id="theme-toggle-label" style="font-size: 0.74rem; font-weight: 600;">System</span>
+          </button>
+
           <button class="btn btn-primary" id="btn-open-sync-modal">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             Sync Data Now
@@ -82,7 +103,7 @@
           <div id="user-profile-badge" class="client-select-wrap" style="padding: 0.25rem 0.65rem; min-width: auto; gap: 0.45rem; cursor: default;">
             <div id="user-role-avatar" class="client-avatar-dot" style="background: linear-gradient(135deg, #da0d0a, #ff1a44); font-size: 0.7rem; font-weight: 800;">AD</div>
             <div style="display: flex; flex-direction: column;">
-              <span id="user-display-name" style="font-size: 0.78rem; font-weight: 700; color: #fff; line-height: 1.1;">Admin</span>
+              <span id="user-display-name" style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); line-height: 1.1;">Admin</span>
               <span id="user-role-badge" style="font-size: 0.65rem; color: var(--accent-gold); font-weight: 700; text-transform: uppercase;">Super Admin</span>
             </div>
           </div>
