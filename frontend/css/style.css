@@ -623,7 +623,7 @@ body {
   border-radius: var(--radius-md);
   padding: 1.25rem 1.35rem;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: var(--shadow-card);
   transition: var(--transition-smooth);
 }
@@ -632,6 +632,7 @@ body {
   transform: translateY(-3px);
   border-color: var(--border-color-hover);
   box-shadow: var(--shadow-card-hover);
+  z-index: 50;
 }
 
 /* Ambient glow accent top rim */
@@ -642,22 +643,25 @@ body {
   left: 0;
   right: 0;
   height: 2px;
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
   background: linear-gradient(90deg, transparent, var(--card-accent, var(--tgm-crimson)), transparent);
   opacity: 0.95;
+  pointer-events: none;
 }
 
 /* Ambient radial glow bloom on card */
 .kpi-card::after {
   content: '';
   position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
+  top: 0;
+  right: 0;
+  width: 90px;
+  height: 90px;
+  border-top-right-radius: var(--radius-md);
   background: var(--card-accent, var(--tgm-crimson));
   opacity: 0.12;
-  filter: blur(30px);
+  filter: blur(25px);
   pointer-events: none;
 }
 
@@ -1687,14 +1691,18 @@ table.data-table tr:hover td {
   vertical-align: middle;
 }
 
+.metric-info-wrap:hover {
+  z-index: 99999;
+}
+
 .metric-info-icon {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #94a3b8;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 700;
   font-family: 'Outfit', sans-serif;
   display: inline-flex;
@@ -1709,44 +1717,56 @@ table.data-table tr:hover td {
   background: var(--accent-indigo);
   color: #ffffff;
   border-color: #818cf8;
-  box-shadow: 0 0 10px rgba(129, 140, 248, 0.4);
-  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.5);
+  transform: scale(1.15);
 }
 
 .metric-tooltip {
   visibility: hidden;
   opacity: 0;
   position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  width: 270px;
+  top: calc(100% + 8px);
+  left: -16px;
+  transform: translateY(-4px);
+  width: 275px;
+  max-width: calc(100vw - 32px);
   padding: 10px 12px;
-  background: #0f172a;
-  border: 1px solid rgba(129, 140, 248, 0.35);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65), 0 0 1px 1px rgba(255, 255, 255, 0.1);
+  background: #0b1329;
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.9), 0 0 1px 1px rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  z-index: 99999;
+  z-index: 999999;
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s;
   text-align: left;
 }
 
 .metric-tooltip::after {
   content: '';
   position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
+  bottom: 100%;
+  left: 23px;
+  margin-left: -6px;
+  border-width: 6px;
   border-style: solid;
-  border-color: #0f172a transparent transparent transparent;
+  border-color: transparent transparent #0b1329 transparent;
 }
 
 .metric-info-wrap:hover .metric-tooltip {
   visibility: visible;
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
+}
+
+/* For right-aligned table columns, anchor tooltip from the right so it stays on screen */
+th:nth-last-child(-n+3) .metric-tooltip {
+  left: auto;
+  right: -12px;
+}
+th:nth-last-child(-n+3) .metric-tooltip::after {
+  left: auto;
+  right: 18px;
+  margin-left: 0;
 }
 
 .metric-tooltip-title {
